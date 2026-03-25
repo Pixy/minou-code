@@ -113,6 +113,19 @@ function randomFrom(arr) {
   return arr[Math.floor(Math.random() * arr.length)];
 }
 
+function calculateStarCount(bonusCount) {
+  const level = levels[currentLevelIndex];
+  const cardCount = countVisualCards();
+  let starCount = 1;
+  if (cardCount <= level.stars[2]) starCount = 2;
+  if (cardCount <= level.stars[3]) starCount = 3;
+  const totalBonuses = level.bonuses.length;
+  if (totalBonuses > 0 && bonusCount >= totalBonuses && starCount < 3) {
+    starCount++;
+  }
+  return starCount;
+}
+
 function showFeedback(type, bonusCount = 0) {
   const overlay = document.getElementById('feedback-overlay');
   const messageEl = document.getElementById('feedback-message');
@@ -128,20 +141,16 @@ function showFeedback(type, bonusCount = 0) {
   if (type === 'win') {
     messageEl.textContent = randomFrom(WIN_MESSAGES);
 
-    // Calcul étoiles
-    const level = levels[currentLevelIndex];
-    const cardCount = countVisualCards();
-    let starCount = 1;
-    if (cardCount <= level.stars[2]) starCount = 2;
-    if (cardCount <= level.stars[3]) starCount = 3;
+    const starCount = calculateStarCount(bonusCount);
 
-    // Bonus étoile
-    const totalBonuses = level.bonuses.length;
-    if (totalBonuses > 0 && bonusCount >= totalBonuses && starCount < 3) {
-      starCount++;
+    starsEl.innerHTML = '';
+    for (let i = 0; i < starCount; i++) {
+      const star = document.createElement('span');
+      star.textContent = '⭐';
+      star.className = 'anim-star-pop';
+      star.style.animationDelay = `${i * 0.3}s`;
+      starsEl.appendChild(star);
     }
-
-    starsEl.textContent = '⭐'.repeat(starCount);
 
     // Sauvegarder
     const save = getSave();
@@ -215,7 +224,8 @@ document.getElementById('btn-run').addEventListener('click', async () => {
       playMeowHappy();
       playState('win');
       playCelebrate();
-      fireConfetti(false);
+      const starCount = calculateStarCount(bonusCount);
+      fireConfetti(starCount === 3);
       await new Promise(r => setTimeout(r, 800));
       showFeedback('win', bonusCount);
     },
