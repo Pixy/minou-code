@@ -1,0 +1,307 @@
+/* Variables */
+:root {
+  --bg: #FFF8F0;
+  --primary: #FF6B9D;
+  --secondary: #C490E4;
+  --success: #7ED957;
+  --warning: #FFD93D;
+  --card-up: #7ED957;
+  --card-down: #FF6B6B;
+  --card-left: #4ECDC4;
+  --card-right: #FFB347;
+  --card-repeat: #C490E4;
+  --radius: 16px;
+  --font: 'Segoe UI', 'SF Pro', system-ui, sans-serif;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+html, body {
+  width: 100%; height: 100%;
+  overflow: hidden;
+  font-family: var(--font);
+  font-size: 18px;
+  background: var(--bg);
+  touch-action: manipulation;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+/* Écrans */
+.screen { display: none; width: 100%; height: 100%; }
+.screen.active { display: flex; flex-direction: column; align-items: center; justify-content: center; }
+
+/* Écran sélection */
+#screen-select h1 { font-size: 2.5rem; margin-bottom: 0.5rem; }
+#screen-select p { font-size: 1.3rem; margin-bottom: 1.5rem; }
+#level-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  max-width: 500px;
+}
+.level-btn {
+  width: 90px; height: 90px;
+  border-radius: var(--radius);
+  border: 3px solid var(--primary);
+  background: white;
+  font-size: 1.5rem;
+  font-weight: bold;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.15s;
+}
+.level-btn:active { transform: scale(0.95); }
+.level-btn.locked {
+  opacity: 0.4;
+  pointer-events: none;
+  border-color: #ccc;
+}
+.level-btn .stars { font-size: 0.8rem; margin-top: 4px; }
+
+/* Écran jeu — layout 2 colonnes */
+#screen-game.active {
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  grid-template-columns: 1fr;
+  height: 100%;
+}
+#game-header {
+  text-align: center;
+  padding: 8px;
+  font-size: 1.2rem;
+  font-weight: bold;
+}
+#game-area {
+  display: flex;
+  gap: 12px;
+  padding: 0 12px;
+  overflow: hidden;
+  min-height: 0;
+}
+#grid-container {
+  flex: 0 0 auto;
+  aspect-ratio: 1;
+  height: 100%;
+  max-height: 100%;
+}
+#right-panel {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-height: 0;
+}
+#program-zone {
+  flex: 1;
+  overflow-y: auto;
+  background: white;
+  border-radius: var(--radius);
+  padding: 10px;
+  border: 2px dashed var(--primary);
+}
+#program-zone h2, #card-tray h2 { font-size: 1rem; margin-bottom: 8px; }
+#card-tray {
+  flex: 0 0 auto;
+  background: white;
+  border-radius: var(--radius);
+  padding: 10px;
+}
+#tray-cards {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+/* Action bar */
+#action-bar {
+  display: flex;
+  gap: 10px;
+  padding: 10px 12px;
+  justify-content: center;
+}
+#action-bar button {
+  min-height: 60px;
+  padding: 12px 24px;
+  border: none;
+  border-radius: var(--radius);
+  font-size: 1.1rem;
+  font-weight: bold;
+  cursor: pointer;
+  transition: transform 0.1s;
+}
+#action-bar button:active { transform: scale(0.95); }
+#btn-run {
+  background: var(--success);
+  color: white;
+  flex: 2;
+}
+#btn-run:disabled { opacity: 0.4; cursor: default; }
+#btn-reset { background: var(--warning); flex: 1; }
+#btn-clear { background: #FF6B6B; color: white; flex: 0; padding: 12px 16px; }
+#btn-back { background: #ddd; flex: 0; padding: 12px 16px; }
+
+/* Cartes */
+.card {
+  min-height: 60px;
+  padding: 10px 16px;
+  border-radius: 12px;
+  font-size: 1.1rem;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: grab;
+  border: 2px solid rgba(0,0,0,0.1);
+  background: white;
+  position: relative;
+}
+.card[data-type="up"] { background: var(--card-up); color: white; }
+.card[data-type="down"] { background: var(--card-down); color: white; }
+.card[data-type="left"] { background: var(--card-left); color: white; }
+.card[data-type="right"] { background: var(--card-right); color: white; }
+.card[data-type="repeat"] { background: var(--card-repeat); color: white; }
+.card .delete-btn {
+  position: absolute;
+  right: 6px; top: 50%; transform: translateY(-50%);
+  background: rgba(0,0,0,0.2);
+  border: none; border-radius: 50%;
+  width: 28px; height: 28px;
+  font-size: 14px; cursor: pointer;
+  display: none;
+  align-items: center; justify-content: center;
+}
+#program-list .card .delete-btn { display: flex; }
+
+/* Repeat card children zone */
+.repeat-children {
+  min-height: 50px;
+  margin: 8px 0 4px 20px;
+  padding: 8px;
+  border: 2px dashed rgba(255,255,255,0.5);
+  border-radius: 8px;
+  background: rgba(255,255,255,0.15);
+}
+
+/* Grille */
+.grid {
+  display: grid;
+  width: 100%; height: 100%;
+  gap: 2px;
+  background: #E8D5C4;
+  border-radius: var(--radius);
+  padding: 4px;
+}
+.cell {
+  background: #FFFDF7;
+  border-radius: 8px;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2rem;
+}
+.cell.wall {
+  background: #C4A882;
+  border: 2px inset #A08060;
+}
+.cell .goal { font-size: 2rem; }
+.cell .bonus { font-size: 1.5rem; }
+
+/* Chat container */
+#cat-container {
+  position: absolute;
+  width: 80%; height: 80%;
+  z-index: 10;
+  transition: transform 0.4s ease-in-out;
+}
+
+/* Feedback overlay */
+#feedback-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.5);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  gap: 16px;
+}
+#feedback-overlay.hidden { display: none; }
+#feedback-message {
+  font-size: 1.8rem;
+  font-weight: bold;
+  text-align: center;
+  background: white;
+  padding: 24px 40px;
+  border-radius: 24px;
+  max-width: 80%;
+}
+#feedback-stars { font-size: 2.5rem; }
+#feedback-overlay button {
+  min-height: 60px;
+  padding: 16px 32px;
+  border: none;
+  border-radius: var(--radius);
+  font-size: 1.2rem;
+  font-weight: bold;
+  cursor: pointer;
+}
+#btn-next { background: var(--success); color: white; }
+#btn-retry { background: var(--warning); }
+
+/* Animations */
+@keyframes bounce-wall {
+  0% { translate: 0 0; }
+  30% { translate: var(--bounce-x) var(--bounce-y); }
+  60% { translate: calc(var(--bounce-x) * -0.3) calc(var(--bounce-y) * -0.3); }
+  100% { translate: 0 0; }
+}
+@keyframes shake {
+  0%, 100% { translate: 0; }
+  20% { translate: -8px 0; }
+  40% { translate: 8px 0; }
+  60% { translate: -6px 0; }
+  80% { translate: 4px 0; }
+}
+@keyframes hop {
+  0%, 100% { translate: 0 0; }
+  50% { translate: 0 -8px; }
+}
+@keyframes celebrate-spin {
+  from { rotate: 0deg; }
+  to { rotate: 360deg; }
+}
+@keyframes card-snap {
+  0% { scale: 1.15; }
+  100% { scale: 1; }
+}
+@keyframes star-pop {
+  0% { scale: 0; }
+  70% { scale: 1.3; }
+  100% { scale: 1; }
+}
+@keyframes bonus-collect {
+  0% { scale: 1; opacity: 1; }
+  50% { scale: 1.5; opacity: 0.5; }
+  100% { scale: 0; opacity: 0; }
+}
+
+.anim-bounce-wall { animation: bounce-wall 0.5s ease-out; }
+.anim-shake { animation: shake 0.5s ease-out; }
+.anim-hop { animation: hop 0.3s ease-out; }
+.anim-celebrate-spin { animation: celebrate-spin 0.8s ease-in-out; }
+.anim-card-snap { animation: card-snap 0.2s ease-out; }
+.anim-star-pop { animation: star-pop 0.4s ease-out backwards; }
+.anim-bonus-collect { animation: bonus-collect 0.4s ease-out forwards; }
+
+/* Responsive */
+@media (max-height: 500px) {
+  #game-header { padding: 4px; font-size: 1rem; }
+  #action-bar { padding: 6px 8px; }
+  #action-bar button { min-height: 48px; padding: 8px 16px; }
+}

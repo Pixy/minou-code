@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>Minou Code 🐱</title>
+  <link rel="stylesheet" href="style.css">
+  <!-- Libs CDN -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/lottie-web/5.12.2/lottie.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.6/Sortable.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
+</head>
+<body>
+  <!-- Écran sélection niveaux -->
+  <section id="screen-select" class="screen active">
+    <h1>🐱 Minou Code</h1>
+    <p id="welcome-message"></p>
+    <div id="level-grid"></div>
+  </section>
+
+  <!-- Écran jeu -->
+  <section id="screen-game" class="screen">
+    <header id="game-header">
+      <span id="level-title"></span>
+    </header>
+    <div id="game-area">
+      <div id="grid-container"></div>
+      <div id="right-panel">
+        <div id="program-zone">
+          <h2>📋 Mon programme</h2>
+          <div id="program-list"></div>
+        </div>
+        <div id="card-tray">
+          <h2>🎴 Mes cartes</h2>
+          <div id="tray-cards"></div>
+        </div>
+      </div>
+    </div>
+    <footer id="action-bar">
+      <button id="btn-run" disabled>🚀 C'est parti !</button>
+      <button id="btn-reset">🔄 Recommencer</button>
+      <button id="btn-clear">❌ Vider</button>
+      <button id="btn-back">🏠</button>
+    </footer>
+  </section>
+
+  <!-- Overlay feedback -->
+  <div id="feedback-overlay" class="hidden">
+    <div id="feedback-message"></div>
+    <div id="feedback-stars"></div>
+    <button id="btn-next" class="hidden">Niveau suivant ! 🚀</button>
+    <button id="btn-retry" class="hidden">Réessayer 💪</button>
+  </div>
+
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>
