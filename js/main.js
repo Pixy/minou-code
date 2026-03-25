@@ -3,6 +3,7 @@ import { renderGrid } from './grid.js';
 import { initCards, clearProgram, getProgram, countVisualCards } from './cards.js';
 import { executeProgram } from './engine.js';
 import { initCatAnimation, playState, positionCatOnCell, moveCatTo, playBounceWall, playCelebrate, fireConfetti } from './animations.js';
+import { initAudio, playStep, playBonk, playMeowHappy, playMeowSad, playFanfare, playPop } from './audio.js';
 
 const PLAYER_NAME = 'Loulou';
 
@@ -57,6 +58,7 @@ function renderLevelSelect() {
 
 // Lancer un niveau
 function startLevel(index) {
+  initAudio();
   currentLevelIndex = index;
   const level = levels[index];
   levelTitle.textContent = `🐱 Niveau ${index + 1} : "${level.name}"`;
@@ -148,7 +150,7 @@ function showFeedback(type, bonusCount = 0) {
     if (num >= save.unlocked) save.unlocked = num + 1;
     saveSave(save);
 
-    // playFanfare(); // TODO: Task 7 — son uniquement si 3 étoiles
+    if (starCount === 3) playFanfare();
 
     btnNext.classList.remove('hidden');
     btnNext.onclick = () => {
@@ -193,20 +195,24 @@ document.getElementById('btn-run').addEventListener('click', async () => {
 
   await executeProgram(program, level, {
     onStep: async (x, y, direction) => {
+      playStep();
       playState('walk');
       await moveCatTo(x, y, direction, gridContainer.querySelector('.grid'));
       catPosition = { x, y };
     },
     onWall: async (_x, _y, direction) => {
+      playBonk();
       playBounceWall(direction);
       playState('fail');
       await new Promise(r => setTimeout(r, 600));
+      playMeowSad();
     },
     onBonus: async (x, y) => {
       const bonusEl = document.getElementById(`bonus-${x}-${y}`);
       if (bonusEl) bonusEl.classList.add('anim-bonus-collect');
     },
     onWin: async (bonusCount) => {
+      playMeowHappy();
       playState('win');
       playCelebrate();
       fireConfetti(false);
@@ -247,6 +253,8 @@ document.getElementById('btn-back').addEventListener('click', () => {
   renderLevelSelect();
   showScreen(screenSelect);
 });
+
+document.addEventListener('card-dropped', () => playPop());
 
 // Init
 function init() {
