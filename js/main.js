@@ -1,5 +1,6 @@
 import levels from './levels/index.js';
 import { renderGrid } from './grid.js';
+import { initCards, clearProgram } from './cards.js';
 
 const PLAYER_NAME = 'Loulou';
 
@@ -57,8 +58,21 @@ function startLevel(index) {
   levelTitle.textContent = `🐱 Niveau ${index + 1} : "${level.name}"`;
 
   renderGrid(level, gridContainer);
+  initCards(level);
   showScreen(screenGame);
 }
+
+// Bouton reset grille
+document.getElementById('btn-reset').addEventListener('click', () => {
+  const level = levels[currentLevelIndex];
+  renderGrid(level, gridContainer);
+  // Réinit le chat mais garde le programme
+});
+
+// Bouton effacer programme
+document.getElementById('btn-clear').addEventListener('click', () => {
+  clearProgram();
+});
 
 // Bouton retour
 document.getElementById('btn-back').addEventListener('click', () => {
