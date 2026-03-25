@@ -194,6 +194,7 @@ html, body {
   background: #E8D5C4;
   border-radius: var(--radius);
   padding: 4px;
+  position: relative;
 }
 .cell {
   background: #FFFDF7;
@@ -218,6 +219,39 @@ html, body {
   z-index: 10;
   transition: transform 0.4s ease-in-out;
 }
+
+/* Cat sprite */
+#cat-container .cat-sprite {
+  font-size: 2.5rem;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+}
+
+/* Cat states */
+@keyframes cat-idle {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+}
+@keyframes cat-walk {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-4px); }
+}
+@keyframes cat-fail-shake {
+  0%, 100% { transform: rotate(0deg); }
+  20% { transform: rotate(-10deg); }
+  40% { transform: rotate(10deg); }
+  60% { transform: rotate(-5deg); }
+  80% { transform: rotate(5deg); }
+}
+
+#cat-container.state-idle .cat-sprite { animation: cat-idle 2s ease-in-out infinite; }
+#cat-container.state-walk .cat-sprite { animation: cat-walk 0.3s ease-in-out infinite; }
+#cat-container.state-fail .cat-sprite { animation: cat-fail-shake 0.5s ease-out; }
+#cat-container.state-win .cat-sprite { animation: cat-idle 0.6s ease-in-out infinite; }
 
 /* Feedback overlay */
 #feedback-overlay {

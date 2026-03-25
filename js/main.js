@@ -1,7 +1,8 @@
 import levels from './levels/index.js';
-import { renderGrid, getCellElement } from './grid.js';
+import { renderGrid } from './grid.js';
 import { initCards, clearProgram, getProgram, countVisualCards } from './cards.js';
 import { executeProgram } from './engine.js';
+import { initCatAnimation, playState, positionCatOnCell, moveCatTo, playBounceWall, playCelebrate, fireConfetti } from './animations.js';
 
 const PLAYER_NAME = 'Loulou';
 
@@ -54,21 +55,6 @@ function renderLevelSelect() {
   });
 }
 
-// Placement du chat (emoji temporaire, Lottie viendra en Task 6)
-function placeCat(x, y) {
-  const old = document.querySelector('.cat-emoji');
-  if (old) old.remove();
-
-  const cell = getCellElement(x, y);
-  if (cell) {
-    const cat = document.createElement('span');
-    cat.className = 'cat-emoji';
-    cat.textContent = '🐱';
-    cat.style.fontSize = '2rem';
-    cell.appendChild(cat);
-  }
-}
-
 // Lancer un niveau
 function startLevel(index) {
   currentLevelIndex = index;
@@ -79,8 +65,9 @@ function startLevel(index) {
   initCards(level);
   showScreen(screenGame);
 
+  initCatAnimation(gridContainer);
+  positionCatOnCell(level.cat.x, level.cat.y, gridContainer.querySelector('.grid'));
   catPosition = { ...level.cat };
-  placeCat(catPosition.x, catPosition.y);
 }
 
 // Messages personnalisés
@@ -201,32 +188,37 @@ document.getElementById('btn-run').addEventListener('click', async () => {
   // Reset position
   catPosition = { ...level.cat };
   renderGrid(level, gridContainer);
-  placeCat(catPosition.x, catPosition.y);
+  initCatAnimation(gridContainer);
+  positionCatOnCell(level.cat.x, level.cat.y, gridContainer.querySelector('.grid'));
 
   await executeProgram(program, level, {
-    onStep: async (x, y, _direction) => {
-      placeCat(x, y);
+    onStep: async (x, y, direction) => {
+      playState('walk');
+      await moveCatTo(x, y, direction, gridContainer.querySelector('.grid'));
       catPosition = { x, y };
     },
-    onWall: async (_x, _y, _direction) => {
-      const catEl = document.querySelector('.cat-emoji');
-      if (catEl) {
-        catEl.classList.add('anim-shake');
-      }
+    onWall: async (_x, _y, direction) => {
+      playBounceWall(direction);
+      playState('fail');
+      await new Promise(r => setTimeout(r, 600));
     },
     onBonus: async (x, y) => {
       const bonusEl = document.getElementById(`bonus-${x}-${y}`);
-      if (bonusEl) {
-        bonusEl.classList.add('anim-bonus-collect');
-      }
+      if (bonusEl) bonusEl.classList.add('anim-bonus-collect');
     },
     onWin: async (bonusCount) => {
+      playState('win');
+      playCelebrate();
+      fireConfetti(false);
+      await new Promise(r => setTimeout(r, 800));
       showFeedback('win', bonusCount);
     },
     onFail: async () => {
+      await new Promise(r => setTimeout(r, 800));
       showFeedback('fail');
     },
     onIncomplete: async (_x, _y) => {
+      playState('idle');
       showFeedback('incomplete');
     },
   });
@@ -240,8 +232,9 @@ document.getElementById('btn-reset').addEventListener('click', () => {
   if (isRunning) return;
   const level = levels[currentLevelIndex];
   renderGrid(level, gridContainer);
+  initCatAnimation(gridContainer);
+  positionCatOnCell(level.cat.x, level.cat.y, gridContainer.querySelector('.grid'));
   catPosition = { ...level.cat };
-  placeCat(catPosition.x, catPosition.y);
 });
 
 // Bouton effacer programme
