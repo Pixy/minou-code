@@ -131,10 +131,13 @@ function calculateStarCount(bonusCount) {
   return starCount;
 }
 
+let feedbackLottie = null;
+
 function showFeedback(type, bonusCount = 0) {
   const overlay = document.getElementById('feedback-overlay');
   const messageEl = document.getElementById('feedback-message');
   const starsEl = document.getElementById('feedback-stars');
+  const catEl = document.getElementById('feedback-cat');
   const btnNext = document.getElementById('btn-next');
   const btnRetry = document.getElementById('btn-retry');
 
@@ -143,7 +146,19 @@ function showFeedback(type, bonusCount = 0) {
   btnNext.classList.add('hidden');
   btnRetry.classList.add('hidden');
 
+  // Cleanup previous lottie
+  if (feedbackLottie) { feedbackLottie.destroy(); feedbackLottie = null; }
+  catEl.innerHTML = '';
+
   if (type === 'win') {
+    feedbackLottie = lottie.loadAnimation({
+      container: catEl,
+      renderer: 'svg',
+      loop: true,
+      autoplay: true,
+      path: 'assets/lottie/cat-win.json',
+    });
+
     messageEl.textContent = randomFrom(WIN_MESSAGES);
 
     const starCount = calculateStarCount(bonusCount);
@@ -188,9 +203,14 @@ function showFeedback(type, bonusCount = 0) {
   } else {
     messageEl.textContent = type === 'fail' ? randomFrom(FAIL_MESSAGES) : randomFrom(INCOMPLETE_MESSAGES);
     btnRetry.classList.remove('hidden');
-    btnRetry.onclick = () => {
+    btnRetry.onclick = async () => {
       overlay.classList.add('hidden');
       enableControls();
+      const level = levels[currentLevelIndex];
+      renderGrid(level, gridContainer);
+      initCatAnimation(gridContainer);
+      await positionCatOnCell(level.cat.x, level.cat.y, gridContainer.querySelector('.grid'));
+      catPosition = { ...level.cat };
     };
   }
 }
@@ -216,7 +236,6 @@ document.getElementById('btn-run').addEventListener('click', async () => {
       playState('walk');
       await moveCatTo(x, y, direction, gridContainer.querySelector('.grid'));
       catPosition = { x, y };
-      playState('idle');
     },
     onWall: async (_x, _y, direction) => {
       playBonk();
@@ -236,14 +255,14 @@ document.getElementById('btn-run').addEventListener('click', async () => {
       playCelebrate();
       const starCount = calculateStarCount(bonusCount);
       fireConfetti(starCount === 3);
-      await new Promise(r => setTimeout(r, 800));
+      await new Promise(r => setTimeout(r, 2000));
       showFeedback('win', bonusCount);
     },
     onFail: async () => {
       await new Promise(r => setTimeout(r, 800));
       showFeedback('fail');
     },
-    onIncomplete: async (_x, _y) => {
+    onIncomplete: async () => {
       playState('idle');
       showFeedback('incomplete');
     },

@@ -1,29 +1,25 @@
-/* animations.js — CSS-only cat animations + canvas-confetti */
+/* animations.js — Lottie cat animations + canvas-confetti */
 
 let catContainer = null;
-let catSprite = null;
-let currentState = 'idle';
+let lottiePlayer = null;
+let currentState = null;
 
-const EMOJI_MAP = {
-  idle: '\u{1F431}',  // 🐱
-  walk: '\u{1F431}',  // 🐱
-  win: '\u{1F63B}',   // 😻
-  fail: '\u{1F640}',  // 🙀
+const STATES = {
+  idle: { path: 'assets/lottie/cat-danse.json', loop: true },
+  walk: { path: 'assets/lottie/cat-walk.json', loop: true },
+  win:  { path: 'assets/lottie/cat-win.json', loop: false },
+  fail: { path: 'assets/lottie/cat-lost.json', loop: false },
 };
 
 export function initCatAnimation(gridContainerEl) {
-  // Nettoyer un éventuel ancien conteneur
   const old = gridContainerEl.querySelector('#cat-container');
   if (old) old.remove();
 
   catContainer = document.createElement('div');
   catContainer.id = 'cat-container';
-
-  catSprite = document.createElement('span');
-  catSprite.className = 'cat-sprite';
-  catContainer.appendChild(catSprite);
-
   gridContainerEl.querySelector('.grid').appendChild(catContainer);
+
+  currentState = null;
   playState('idle');
 
   return catContainer;
@@ -31,12 +27,30 @@ export function initCatAnimation(gridContainerEl) {
 
 export function playState(state) {
   if (!catContainer) return;
-  if (currentState === state) return;
+  if (currentState === state && lottiePlayer) return;
   currentState = state;
 
-  catContainer.classList.remove('state-idle', 'state-walk', 'state-win', 'state-fail');
-  catContainer.classList.add(`state-${state}`);
-  catSprite.textContent = EMOJI_MAP[state] ?? EMOJI_MAP.idle;
+  if (lottiePlayer) {
+    lottiePlayer.destroy();
+    lottiePlayer = null;
+  }
+
+  catContainer.innerHTML = '';
+
+  const config = STATES[state] ?? STATES.idle;
+  lottiePlayer = lottie.loadAnimation({
+    container: catContainer,
+    renderer: 'svg',
+    loop: config.loop,
+    autoplay: true,
+    path: config.path,
+  });
+
+  if (!config.loop) {
+    lottiePlayer.addEventListener('complete', () => {
+      playState('idle');
+    });
+  }
 }
 
 export function positionCatOnCell(x, y, gridElement) {
@@ -63,7 +77,6 @@ export async function moveCatTo(x, y, direction, gridElement) {
   const cell = gridElement.querySelector(`[data-x="${x}"][data-y="${y}"]`);
   if (!cell || !catContainer) return;
 
-  // Flip horizontal si direction gauche
   catContainer.style.transform = direction === 'left' ? 'scaleX(-1)' : 'scaleX(1)';
 
   const gridRect = gridElement.getBoundingClientRect();
