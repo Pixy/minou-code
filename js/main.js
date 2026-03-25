@@ -1,6 +1,7 @@
 import levels from './levels/index.js';
-import { renderGrid } from './grid.js';
-import { initCards, clearProgram } from './cards.js';
+import { renderGrid, getCellElement } from './grid.js';
+import { initCards, clearProgram, getProgram, countVisualCards } from './cards.js';
+import { executeProgram } from './engine.js';
 
 const PLAYER_NAME = 'Loulou';
 
@@ -11,6 +12,8 @@ const levelTitle = document.getElementById('level-title');
 const levelGrid = document.getElementById('level-grid');
 
 let currentLevelIndex = 0;
+let isRunning = false;
+let catPosition = { x: 0, y: 0 };
 
 function showScreen(screen) {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
@@ -51,6 +54,21 @@ function renderLevelSelect() {
   });
 }
 
+// Placement du chat (emoji temporaire, Lottie viendra en Task 6)
+function placeCat(x, y) {
+  const old = document.querySelector('.cat-emoji');
+  if (old) old.remove();
+
+  const cell = getCellElement(x, y);
+  if (cell) {
+    const cat = document.createElement('span');
+    cat.className = 'cat-emoji';
+    cat.textContent = '🐱';
+    cat.style.fontSize = '2rem';
+    cell.appendChild(cat);
+  }
+}
+
 // Lancer un niveau
 function startLevel(index) {
   currentLevelIndex = index;
@@ -60,13 +78,170 @@ function startLevel(index) {
   renderGrid(level, gridContainer);
   initCards(level);
   showScreen(screenGame);
+
+  catPosition = { ...level.cat };
+  placeCat(catPosition.x, catPosition.y);
 }
+
+// Messages personnalisés
+const WIN_MESSAGES = [
+  `OUIIIII ! Bravo ${PLAYER_NAME} ! 🐱🎉`,
+  `${PLAYER_NAME} la championne ! 🏆✨`,
+  `Minou te fait un gros câlin ${PLAYER_NAME} ! 🐱❤️`,
+  `Le poisson n'avait aucune chance ${PLAYER_NAME} ! 🐟💨`,
+  `Génie absolu détecté : ${PLAYER_NAME} ! 🧠✨`,
+  `Minou te dit MIAOU DU TONNERRE ${PLAYER_NAME} ! ⚡🐱`,
+  `T'es trop forte ${PLAYER_NAME} ! 💪🌟`,
+  `${PLAYER_NAME} + Minou = équipe de choc ! 🐱🚀`,
+  `Minou est trop content grâce à toi ${PLAYER_NAME} ! 😻`,
+  `Woooow ${PLAYER_NAME}, c'était parfait ! 🎯✨`,
+];
+
+const FAIL_MESSAGES = [
+  `T'inquiète ${PLAYER_NAME}, tu vas y arriver ! 💪`,
+  `Minou croit en toi ${PLAYER_NAME} ! 🐱🌟`,
+  `Aïe aïe aïe ! Le mur a gagné cette fois 😹`,
+  `Oups ! Le poisson rigole là 🐟😂`,
+  `Ce mur est vraiment mal élevé ! 😤`,
+  `Essaie encore ${PLAYER_NAME}, Minou ne lâche pas ! 🐱❤️`,
+  `Presque ${PLAYER_NAME} ! Encore un petit effort ! 🌈`,
+  `Minou s'est cogné mais il va bien ! 😹💫`,
+  `Le chemin est par là... ou pas 🤔😸`,
+  `Allez ${PLAYER_NAME}, on recommence ! 🔄✨`,
+];
+
+const INCOMPLETE_MESSAGES = [
+  `Hmm... Minou n'est pas encore arrivé ! Il manque des pas ${PLAYER_NAME} 🐱🤔`,
+  `Minou attend... il lui faut plus de cartes ${PLAYER_NAME} ! 📋`,
+];
+
+const TRANSITION_MESSAGES = [
+  `Allez ${PLAYER_NAME}, on continue ! 🚀`,
+  `Niveau suivant ${PLAYER_NAME}, c'est parti ! 🐱💨`,
+];
+
+function randomFrom(arr) {
+  return arr[Math.floor(Math.random() * arr.length)];
+}
+
+function showFeedback(type, bonusCount = 0) {
+  const overlay = document.getElementById('feedback-overlay');
+  const messageEl = document.getElementById('feedback-message');
+  const starsEl = document.getElementById('feedback-stars');
+  const btnNext = document.getElementById('btn-next');
+  const btnRetry = document.getElementById('btn-retry');
+
+  overlay.classList.remove('hidden');
+  starsEl.textContent = '';
+  btnNext.classList.add('hidden');
+  btnRetry.classList.add('hidden');
+
+  if (type === 'win') {
+    messageEl.textContent = randomFrom(WIN_MESSAGES);
+
+    // Calcul étoiles
+    const level = levels[currentLevelIndex];
+    const cardCount = countVisualCards();
+    let starCount = 1;
+    if (cardCount <= level.stars[2]) starCount = 2;
+    if (cardCount <= level.stars[3]) starCount = 3;
+
+    // Bonus étoile
+    const totalBonuses = level.bonuses.length;
+    if (totalBonuses > 0 && bonusCount >= totalBonuses && starCount < 3) {
+      starCount++;
+    }
+
+    starsEl.textContent = '⭐'.repeat(starCount);
+
+    // Sauvegarder
+    const save = getSave();
+    const num = currentLevelIndex + 1;
+    save.stars[num] = Math.max(save.stars[num] || 0, starCount);
+    if (num >= save.unlocked) save.unlocked = num + 1;
+    saveSave(save);
+
+    // playFanfare(); // TODO: Task 7 — son uniquement si 3 étoiles
+
+    btnNext.classList.remove('hidden');
+    btnNext.onclick = () => {
+      if (currentLevelIndex + 1 < levels.length) {
+        messageEl.textContent = randomFrom(TRANSITION_MESSAGES);
+        starsEl.textContent = '';
+        btnNext.classList.add('hidden');
+        btnRetry.classList.add('hidden');
+        setTimeout(() => {
+          overlay.classList.add('hidden');
+          startLevel(currentLevelIndex + 1);
+        }, 800);
+      } else {
+        overlay.classList.add('hidden');
+        renderLevelSelect();
+        showScreen(screenSelect);
+      }
+    };
+  } else {
+    messageEl.textContent = type === 'fail' ? randomFrom(FAIL_MESSAGES) : randomFrom(INCOMPLETE_MESSAGES);
+    btnRetry.classList.remove('hidden');
+    btnRetry.onclick = () => {
+      overlay.classList.add('hidden');
+    };
+  }
+}
+
+// Bouton C'est parti !
+document.getElementById('btn-run').addEventListener('click', async () => {
+  if (isRunning) return;
+  isRunning = true;
+  document.getElementById('btn-run').disabled = true;
+
+  const level = levels[currentLevelIndex];
+  const program = getProgram();
+
+  // Reset position
+  catPosition = { ...level.cat };
+  renderGrid(level, gridContainer);
+  placeCat(catPosition.x, catPosition.y);
+
+  await executeProgram(program, level, {
+    onStep: async (x, y, _direction) => {
+      placeCat(x, y);
+      catPosition = { x, y };
+    },
+    onWall: async (_x, _y, _direction) => {
+      const catEl = document.querySelector('.cat-emoji');
+      if (catEl) {
+        catEl.classList.add('anim-shake');
+      }
+    },
+    onBonus: async (x, y) => {
+      const bonusEl = document.getElementById(`bonus-${x}-${y}`);
+      if (bonusEl) {
+        bonusEl.classList.add('anim-bonus-collect');
+      }
+    },
+    onWin: async (bonusCount) => {
+      showFeedback('win', bonusCount);
+    },
+    onFail: async () => {
+      showFeedback('fail');
+    },
+    onIncomplete: async (_x, _y) => {
+      showFeedback('incomplete');
+    },
+  });
+
+  isRunning = false;
+  document.getElementById('btn-run').disabled = false;
+});
 
 // Bouton reset grille
 document.getElementById('btn-reset').addEventListener('click', () => {
+  if (isRunning) return;
   const level = levels[currentLevelIndex];
   renderGrid(level, gridContainer);
-  // Réinit le chat mais garde le programme
+  catPosition = { ...level.cat };
+  placeCat(catPosition.x, catPosition.y);
 });
 
 // Bouton effacer programme
