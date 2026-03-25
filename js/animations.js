@@ -40,21 +40,22 @@ export function playState(state) {
 }
 
 export function positionCatOnCell(x, y, gridElement) {
-  requestAnimationFrame(() => {
-    const cell = gridElement.querySelector(`[data-x="${x}"][data-y="${y}"]`);
-    if (!cell || !catContainer) return;
-
-    const gridRect = gridElement.getBoundingClientRect();
-    const cellRect = cell.getBoundingClientRect();
-    const offsetX = cellRect.left - gridRect.left + cellRect.width * 0.1;
-    const offsetY = cellRect.top - gridRect.top + cellRect.height * 0.1;
-
-    catContainer.style.width = `${cellRect.width * 0.8}px`;
-    catContainer.style.height = `${cellRect.height * 0.8}px`;
-    catContainer.style.position = 'absolute';
-    catContainer.style.left = `${offsetX}px`;
-    catContainer.style.top = `${offsetY}px`;
-    catContainer.style.transition = 'none';
+  return new Promise(resolve => {
+    requestAnimationFrame(() => {
+      const cell = gridElement.querySelector(`[data-x="${x}"][data-y="${y}"]`);
+      if (!cell || !catContainer) { resolve(); return; }
+      const gridRect = gridElement.getBoundingClientRect();
+      const cellRect = cell.getBoundingClientRect();
+      const offsetX = cellRect.left - gridRect.left + cellRect.width * 0.1;
+      const offsetY = cellRect.top - gridRect.top + cellRect.height * 0.1;
+      catContainer.style.width = `${cellRect.width * 0.8}px`;
+      catContainer.style.height = `${cellRect.height * 0.8}px`;
+      catContainer.style.position = 'absolute';
+      catContainer.style.left = `${offsetX}px`;
+      catContainer.style.top = `${offsetY}px`;
+      catContainer.style.transition = 'none';
+      resolve();
+    });
   });
 }
 

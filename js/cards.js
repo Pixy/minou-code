@@ -30,6 +30,8 @@ function createCardElement(type) {
         new Sortable(childZone, {
           group: { name: 'program', put: (to, from, el) => el.dataset.type !== 'repeat' },
           animation: 200,
+          forceFallback: true,
+          fallbackTolerance: 5,
           onAdd: onCardAdded,
         });
       }
@@ -70,6 +72,8 @@ function reinitCardListeners(card) {
       new Sortable(childZone, {
         group: { name: 'program', put: (to, from, el) => el.dataset.type !== 'repeat' },
         animation: 200,
+        forceFallback: true,
+        fallbackTolerance: 5,
         onAdd: onCardAdded,
       });
     }
@@ -113,6 +117,8 @@ export function initCards(level) {
     group: { name: 'program', pull: 'clone', put: false },
     sort: false,
     animation: 200,
+    forceFallback: true,
+    fallbackTolerance: 5,
   });
 
   // Sortable programme
@@ -120,6 +126,8 @@ export function initCards(level) {
   programSortable = new Sortable(programList, {
     group: { name: 'program', put: true },
     animation: 200,
+    forceFallback: true,
+    fallbackTolerance: 5,
     filter: '.repeat-count', // Empêche le drag quand on clique sur le sélecteur
     preventOnFilter: true,    // Empêche le drag sur le select, permet l'interaction native
     onAdd: onCardAdded,

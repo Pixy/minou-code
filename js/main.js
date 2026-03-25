@@ -17,6 +17,11 @@ let currentLevelIndex = 0;
 let isRunning = false;
 let catPosition = { x: 0, y: 0 };
 
+function enableControls() {
+  isRunning = false;
+  document.getElementById('btn-run').disabled = false;
+}
+
 function showScreen(screen) {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   screen.classList.add('active');
@@ -57,7 +62,7 @@ function renderLevelSelect() {
 }
 
 // Lancer un niveau
-function startLevel(index) {
+async function startLevel(index) {
   initAudio();
   currentLevelIndex = index;
   const level = levels[index];
@@ -68,7 +73,7 @@ function startLevel(index) {
   showScreen(screenGame);
 
   initCatAnimation(gridContainer);
-  positionCatOnCell(level.cat.x, level.cat.y, gridContainer.querySelector('.grid'));
+  await positionCatOnCell(level.cat.x, level.cat.y, gridContainer.querySelector('.grid'));
   catPosition = { ...level.cat };
 }
 
@@ -170,10 +175,12 @@ function showFeedback(type, bonusCount = 0) {
         btnRetry.classList.add('hidden');
         setTimeout(() => {
           overlay.classList.add('hidden');
+          enableControls();
           startLevel(currentLevelIndex + 1);
         }, 800);
       } else {
         overlay.classList.add('hidden');
+        enableControls();
         renderLevelSelect();
         showScreen(screenSelect);
       }
@@ -183,6 +190,7 @@ function showFeedback(type, bonusCount = 0) {
     btnRetry.classList.remove('hidden');
     btnRetry.onclick = () => {
       overlay.classList.add('hidden');
+      enableControls();
     };
   }
 }
@@ -200,7 +208,7 @@ document.getElementById('btn-run').addEventListener('click', async () => {
   catPosition = { ...level.cat };
   renderGrid(level, gridContainer);
   initCatAnimation(gridContainer);
-  positionCatOnCell(level.cat.x, level.cat.y, gridContainer.querySelector('.grid'));
+  await positionCatOnCell(level.cat.x, level.cat.y, gridContainer.querySelector('.grid'));
 
   await executeProgram(program, level, {
     onStep: async (x, y, direction) => {
@@ -208,6 +216,7 @@ document.getElementById('btn-run').addEventListener('click', async () => {
       playState('walk');
       await moveCatTo(x, y, direction, gridContainer.querySelector('.grid'));
       catPosition = { x, y };
+      playState('idle');
     },
     onWall: async (_x, _y, direction) => {
       playBonk();
@@ -217,6 +226,7 @@ document.getElementById('btn-run').addEventListener('click', async () => {
       playMeowSad();
     },
     onBonus: async (x, y) => {
+      playPop();
       const bonusEl = document.getElementById(`bonus-${x}-${y}`);
       if (bonusEl) bonusEl.classList.add('anim-bonus-collect');
     },
@@ -239,17 +249,19 @@ document.getElementById('btn-run').addEventListener('click', async () => {
     },
   });
 
-  isRunning = false;
-  document.getElementById('btn-run').disabled = false;
+  // Si aucun feedback n'a été montré (programme vide), réactiver les contrôles
+  if (document.getElementById('feedback-overlay').classList.contains('hidden')) {
+    enableControls();
+  }
 });
 
 // Bouton reset grille
-document.getElementById('btn-reset').addEventListener('click', () => {
+document.getElementById('btn-reset').addEventListener('click', async () => {
   if (isRunning) return;
   const level = levels[currentLevelIndex];
   renderGrid(level, gridContainer);
   initCatAnimation(gridContainer);
-  positionCatOnCell(level.cat.x, level.cat.y, gridContainer.querySelector('.grid'));
+  await positionCatOnCell(level.cat.x, level.cat.y, gridContainer.querySelector('.grid'));
   catPosition = { ...level.cat };
 });
 
