@@ -35,13 +35,14 @@ export async function executeProgram(program, level, callbacks) {
 
     if (step.type === 'jump') {
       const dir = DIRECTIONS[step.direction];
+      if (!dir) continue;
       const midX = catX + dir.dx;
       const midY = catY + dir.dy;
       nextX = catX + dir.dx * 2;
       nextY = catY + dir.dy * 2;
       moveDirection = step.direction;
 
-      // La cellule intermédiaire doit être dans la grille (on ne saute pas depuis le bord)
+      // La cellule survolée doit être dans la grille
       if (midX < 0 || midY < 0 || midX >= level.grid || midY >= level.grid) {
         await callbacks.onWall(catX, catY, step.direction);
         await callbacks.onFail();
