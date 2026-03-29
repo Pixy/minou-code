@@ -31,28 +31,56 @@ export async function executeProgram(program, level, callbacks) {
   const collectedBonuses = [];
 
   for (const step of steps) {
-    const dir = DIRECTIONS[step.type];
-    if (!dir) continue;
+    let nextX, nextY, moveDirection;
 
-    const nextX = catX + dir.dx;
-    const nextY = catY + dir.dy;
+    if (step.type === 'jump') {
+      const dir = DIRECTIONS[step.direction];
+      const midX = catX + dir.dx;
+      const midY = catY + dir.dy;
+      nextX = catX + dir.dx * 2;
+      nextY = catY + dir.dy * 2;
+      moveDirection = step.direction;
 
-    // Hors grille ou mur → arrêt immédiat
-    if (nextX < 0 || nextY < 0 || nextX >= level.grid || nextY >= level.grid) {
-      await callbacks.onWall(catX, catY, step.type);
-      await callbacks.onFail();
-      return;
+      // La cellule intermédiaire doit être dans la grille (on ne saute pas depuis le bord)
+      if (midX < 0 || midY < 0 || midX >= level.grid || midY >= level.grid) {
+        await callbacks.onWall(catX, catY, step.direction);
+        await callbacks.onFail();
+        return;
+      }
+      // La cellule d'atterrissage doit être dans la grille et sans mur
+      if (nextX < 0 || nextY < 0 || nextX >= level.grid || nextY >= level.grid) {
+        await callbacks.onWall(catX, catY, step.direction);
+        await callbacks.onFail();
+        return;
+      }
+      if (level.walls.some(w => w.x === nextX && w.y === nextY)) {
+        await callbacks.onWall(catX, catY, step.direction);
+        await callbacks.onFail();
+        return;
+      }
+    } else {
+      const dir = DIRECTIONS[step.type];
+      if (!dir) continue;
+      nextX = catX + dir.dx;
+      nextY = catY + dir.dy;
+      moveDirection = step.type;
+
+      if (nextX < 0 || nextY < 0 || nextX >= level.grid || nextY >= level.grid) {
+        await callbacks.onWall(catX, catY, step.type);
+        await callbacks.onFail();
+        return;
+      }
+      if (level.walls.some(w => w.x === nextX && w.y === nextY)) {
+        await callbacks.onWall(catX, catY, step.type);
+        await callbacks.onFail();
+        return;
+      }
     }
-    if (level.walls.some(w => w.x === nextX && w.y === nextY)) {
-      await callbacks.onWall(catX, catY, step.type);
-      await callbacks.onFail();
-      return;
-    }
 
-    // Déplacement valide
+    // Déplacement valide (saut ou pas)
     catX = nextX;
     catY = nextY;
-    await callbacks.onStep(catX, catY, step.type);
+    await callbacks.onStep(catX, catY, moveDirection);
 
     // Bonus ?
     const bonusIndex = level.bonuses.findIndex(b => b.x === catX && b.y === catY && !collectedBonuses.includes(`${b.x}-${b.y}`));
@@ -70,6 +98,5 @@ export async function executeProgram(program, level, callbacks) {
     await delay(STEP_DELAY);
   }
 
-  // Programme terminé sans atteindre le goal
   await callbacks.onIncomplete(catX, catY);
 }
