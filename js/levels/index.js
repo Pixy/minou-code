@@ -7,7 +7,8 @@ import level06 from './level-06.js';
 import level07 from './level-07.js';
 import level08 from './level-08.js';
 import level09 from './level-09.js';
+import level10 from './level-10.js';
 
-const levels = [level01, level02, level03, level04, level05, level06, level07, level08, level09];
+const levels = [level01, level02, level03, level04, level05, level06, level07, level08, level09, level10];
 
 export default levels;
