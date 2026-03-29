@@ -327,6 +327,10 @@ html, body {
   background: linear-gradient(135deg, #C9A0DC 0%, #A87EC8 100%);
   box-shadow: 0 3px 0 0 #8C62AD, var(--shadow-sm);
 }
+.card[data-type="jump"] {
+  background: linear-gradient(135deg, #7EC8E3 0%, #5AAEC8 100%);
+  box-shadow: 0 3px 0 0 #3A90B0, var(--shadow-sm);
+}
 
 .card .delete-btn {
   position: absolute;
@@ -342,13 +346,34 @@ html, body {
 }
 #program-list .card .delete-btn { display: flex; }
 
+.card[data-type="repeat"] {
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.repeat-count,
+.jump-direction {
+  background: rgba(255,255,255,0.25);
+  border: none;
+  border-radius: 6px;
+  color: white;
+  font-family: var(--font);
+  font-weight: 800;
+  font-size: 0.9rem;
+  padding: 2px 4px;
+  cursor: pointer;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
 .repeat-children {
-  min-height: 44px;
-  margin: 6px 0 4px 16px;
-  padding: 6px;
-  border: 2px dashed rgba(255,255,255,0.45);
+  flex: 1 0 100%;
+  min-height: 72px;
+  margin: 6px 0 0 0;
+  padding: 10px 8px;
+  border: 2.5px dashed rgba(255,255,255,0.6);
   border-radius: 8px;
-  background: rgba(255,255,255,0.12);
+  background: rgba(255,255,255,0.15);
 }
 
 /* ==========================================
@@ -529,6 +554,18 @@ html, body {
   0% { transform: scale(1); opacity: 1; }
   50% { transform: scale(1.6); opacity: 0.4; }
   100% { transform: scale(0); opacity: 0; }
+}
+
+/* ==========================================
+   DRAG & DROP — SortableJS feedback
+   ========================================== */
+.sortable-ghost {
+  opacity: 0.25;
+}
+.sortable-fallback {
+  opacity: 0.85 !important;
+  filter: drop-shadow(0 8px 20px rgba(90,74,63,0.45)) !important;
+  cursor: grabbing !important;
 }
 
 .anim-bounce-wall { animation: bounce-wall 0.5s ease-out; }
