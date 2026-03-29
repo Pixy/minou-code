@@ -351,8 +351,7 @@ html, body {
   align-items: center;
 }
 
-.repeat-count,
-.jump-direction {
+.repeat-count {
   background: rgba(255,255,255,0.25);
   border: none;
   border-radius: 6px;
@@ -365,6 +364,30 @@ html, body {
   -webkit-appearance: none;
   appearance: none;
 }
+
+.jump-btns {
+  display: flex;
+  gap: 4px;
+}
+.jump-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  border: 2px solid rgba(255,255,255,0.35);
+  background: rgba(255,255,255,0.12);
+  font-size: 1rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.12s, border-color 0.12s, transform 0.08s;
+  flex-shrink: 0;
+}
+.jump-btn.active {
+  background: rgba(255,255,255,0.9);
+  border-color: rgba(255,255,255,0.9);
+}
+.jump-btn:active { transform: scale(0.88); }
 
 .repeat-children {
   flex: 1 0 100%;

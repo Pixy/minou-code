@@ -40,14 +40,15 @@ function createCardElement(type) {
   } else if (type === 'jump') {
     card.innerHTML = `
       <span>${CARD_TYPES[type].emoji} ${CARD_TYPES[type].label}</span>
-      <select class="jump-direction">
-        <option value="up">⬆️</option>
-        <option value="down">⬇️</option>
-        <option value="left">⬅️</option>
-        <option value="right">➡️</option>
-      </select>
+      <div class="jump-btns">
+        <button class="jump-btn active" data-dir="up">⬆️</button>
+        <button class="jump-btn" data-dir="down">⬇️</button>
+        <button class="jump-btn" data-dir="left">⬅️</button>
+        <button class="jump-btn" data-dir="right">➡️</button>
+      </div>
       <button class="delete-btn">❌</button>
     `;
+    initJumpBtnListeners(card);
   } else {
     card.innerHTML = `
       <span>${CARD_TYPES[type].emoji} ${CARD_TYPES[type].label}</span>
@@ -63,6 +64,16 @@ function createCardElement(type) {
   });
 
   return card;
+}
+
+function initJumpBtnListeners(card) {
+  card.querySelectorAll('.jump-btn').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      card.querySelectorAll('.jump-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+    });
+  });
 }
 
 function reinitCardListeners(card) {
@@ -89,6 +100,11 @@ function reinitCardListeners(card) {
         onAdd: onCardAdded,
       });
     }
+  }
+
+  // Si carte Jump, réattacher les listeners de direction
+  if (card.dataset.type === 'jump') {
+    initJumpBtnListeners(card);
   }
 }
 
@@ -141,8 +157,8 @@ export function initCards(level) {
     animation: 200,
     forceFallback: true,
     fallbackTolerance: 5,
-    filter: '.repeat-count, .jump-direction', // Empêche le drag quand on clique sur les sélecteurs
-    preventOnFilter: true,                   // Empêche le drag sur les selects, permet l'interaction native
+    filter: '.repeat-count, .jump-btn', // Empêche le drag quand on clique sur les sélecteurs/boutons
+    preventOnFilter: true,              // Empêche le drag sur ces éléments, permet l'interaction native
     onAdd: onCardAdded,
     onSort: updateRunButton,
   });
@@ -167,7 +183,8 @@ function parseCards(container) {
       const children = parseCards(childZone);
       instructions.push({ type: 'repeat', count, children });
     } else if (type === 'jump') {
-      const direction = card.querySelector('.jump-direction').value;
+      const activeBtn = card.querySelector('.jump-btn.active');
+      const direction = activeBtn ? activeBtn.dataset.dir : 'up';
       instructions.push({ type: 'jump', direction });
     } else {
       instructions.push({ type });
