@@ -7,6 +7,7 @@ const CARD_TYPES = {
   left:   { emoji: '⬅️', label: 'Gauche' },
   right:  { emoji: '➡️', label: 'Droite' },
   repeat: { emoji: '🔁', label: 'Répète' },
+  jump:   { emoji: '🦘', label: 'Saute' },
 };
 
 function createCardElement(type) {
@@ -36,6 +37,17 @@ function createCardElement(type) {
         });
       }
     });
+  } else if (type === 'jump') {
+    card.innerHTML = `
+      <span>${CARD_TYPES[type].emoji} ${CARD_TYPES[type].label}</span>
+      <select class="jump-direction">
+        <option value="up">⬆️</option>
+        <option value="down">⬇️</option>
+        <option value="left">⬅️</option>
+        <option value="right">➡️</option>
+      </select>
+      <button class="delete-btn">❌</button>
+    `;
   } else {
     card.innerHTML = `
       <span>${CARD_TYPES[type].emoji} ${CARD_TYPES[type].label}</span>
@@ -106,6 +118,7 @@ export function initCards(level) {
   // Cartes disponibles
   const availableTypes = ['up', 'down', 'left', 'right'];
   if (level.allowRepeat) availableTypes.push('repeat');
+  if (level.allowJump) availableTypes.push('jump');
 
   availableTypes.forEach(type => {
     trayContainer.appendChild(createCardElement(type));
@@ -128,8 +141,8 @@ export function initCards(level) {
     animation: 200,
     forceFallback: true,
     fallbackTolerance: 5,
-    filter: '.repeat-count', // Empêche le drag quand on clique sur le sélecteur
-    preventOnFilter: true,    // Empêche le drag sur le select, permet l'interaction native
+    filter: '.repeat-count, .jump-direction', // Empêche le drag quand on clique sur les sélecteurs
+    preventOnFilter: true,                   // Empêche le drag sur les selects, permet l'interaction native
     onAdd: onCardAdded,
     onSort: updateRunButton,
   });
@@ -153,6 +166,9 @@ function parseCards(container) {
       const childZone = card.querySelector('[data-repeat-zone]');
       const children = parseCards(childZone);
       instructions.push({ type: 'repeat', count, children });
+    } else if (type === 'jump') {
+      const direction = card.querySelector('.jump-direction').value;
+      instructions.push({ type: 'jump', direction });
     } else {
       instructions.push({ type });
     }
