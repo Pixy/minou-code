@@ -29,6 +29,9 @@ export async function executeProgram(program, level, callbacks) {
   let catX = level.cat.x;
   let catY = level.cat.y;
   const collectedBonuses = [];
+  const collectedPickups = [];
+  const pickups = level.pickups || [];
+  const totalPickups = pickups.length;
 
   for (const step of steps) {
     let nextX, nextY, moveDirection;
@@ -42,13 +45,11 @@ export async function executeProgram(program, level, callbacks) {
       nextY = catY + dir.dy * 2;
       moveDirection = step.direction;
 
-      // La cellule survolée doit être dans la grille
       if (midX < 0 || midY < 0 || midX >= level.grid || midY >= level.grid) {
         await callbacks.onWall(catX, catY, step.direction);
         await callbacks.onFail();
         return;
       }
-      // La cellule d'atterrissage doit être dans la grille et sans mur
       if (nextX < 0 || nextY < 0 || nextX >= level.grid || nextY >= level.grid) {
         await callbacks.onWall(catX, catY, step.direction);
         await callbacks.onFail();
@@ -78,10 +79,33 @@ export async function executeProgram(program, level, callbacks) {
       }
     }
 
+    // But verrouillé ? (pickups pas tous collectés)
+    const isGoal = nextX === level.goal.x && nextY === level.goal.y;
+    if (isGoal && totalPickups > 0 && collectedPickups.length < totalPickups) {
+      if (callbacks.onGoalLocked) {
+        await callbacks.onGoalLocked(nextX, nextY, moveDirection);
+      }
+      await callbacks.onFail();
+      return;
+    }
+
     // Déplacement valide (saut ou pas)
     catX = nextX;
     catY = nextY;
     await callbacks.onStep(catX, catY, moveDirection);
+
+    // Pickup ?
+    const pickupKey = `${catX}-${catY}`;
+    const pickupHere = pickups.find(p => p.x === catX && p.y === catY && !collectedPickups.includes(pickupKey));
+    if (pickupHere) {
+      collectedPickups.push(pickupKey);
+      if (callbacks.onPickup) {
+        await callbacks.onPickup(catX, catY);
+      }
+      if (collectedPickups.length === totalPickups && callbacks.onAllPickupsCollected) {
+        await callbacks.onAllPickupsCollected();
+      }
+    }
 
     // Bonus ?
     const bonusIndex = level.bonuses.findIndex(b => b.x === catX && b.y === catY && !collectedBonuses.includes(`${b.x}-${b.y}`));
@@ -91,7 +115,7 @@ export async function executeProgram(program, level, callbacks) {
     }
 
     // Victoire ?
-    if (catX === level.goal.x && catY === level.goal.y) {
+    if (isGoal) {
       await callbacks.onWin(collectedBonuses.length);
       return;
     }
