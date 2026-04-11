@@ -4,6 +4,8 @@ let gridSize = 0;
 export function renderGrid(level, container) {
   container.innerHTML = '';
   gridSize = level.grid;
+  const pickups = level.pickups || [];
+  const hasPickups = pickups.length > 0;
 
   const grid = document.createElement('div');
   grid.className = 'grid';
@@ -22,12 +24,29 @@ export function renderGrid(level, container) {
         cell.classList.add('wall');
       }
 
-      // Gamelle
+      // Gamelle (verrouillée si pickups)
       if (level.goal.x === x && level.goal.y === y) {
         const goalEl = document.createElement('span');
         goalEl.className = 'goal';
-        goalEl.textContent = level.goal.type === 'fish' ? '🐟' : '🧶';
+        goalEl.id = 'goal-icon';
+        if (hasPickups) {
+          goalEl.textContent = '🔒';
+          cell.classList.add('locked-goal');
+        } else {
+          goalEl.textContent = level.goal.type === 'fish' ? '🐟' : '🧶';
+        }
         cell.appendChild(goalEl);
+      }
+
+      // Pickup
+      const pickup = pickups.find(p => p.x === x && p.y === y);
+      if (pickup) {
+        const pickupEl = document.createElement('span');
+        pickupEl.className = 'pickup';
+        pickupEl.id = `pickup-${x}-${y}`;
+        pickupEl.textContent = '🔑';
+        cell.classList.add('has-pickup');
+        cell.appendChild(pickupEl);
       }
 
       // Bonus
