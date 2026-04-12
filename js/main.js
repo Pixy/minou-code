@@ -15,6 +15,7 @@ const levelGrid = document.getElementById('level-grid');
 
 let currentLevelIndex = 0;
 let isRunning = false;
+let lastFailWasLocked = false;
 let catPosition = { x: 0, y: 0 };
 
 function enableControls() {
@@ -28,9 +29,13 @@ function showScreen(screen) {
 }
 
 // Sauvegarde localStorage
+const DEV_UNLOCK_ALL = true;
+
 function getSave() {
   const raw = localStorage.getItem('minou-code-save');
-  return raw ? JSON.parse(raw) : { unlocked: 1, stars: {} };
+  const save = raw ? JSON.parse(raw) : { unlocked: 1, stars: {} };
+  if (DEV_UNLOCK_ALL) save.unlocked = 99;
+  return save;
 }
 
 function saveSave(save) {
@@ -107,6 +112,13 @@ const FAIL_MESSAGES = [
 const INCOMPLETE_MESSAGES = [
   `Hmm... Minou n'est pas encore arrivé ! Il manque des pas ${PLAYER_NAME} 🐱🤔`,
   `Minou attend... il lui faut plus de cartes ${PLAYER_NAME} ! 📋`,
+];
+
+const LOCKED_MESSAGES = [
+  `Oups ! Il manque la clé ${PLAYER_NAME} ! 🔑🔒`,
+  `Minou a besoin de la clé d'abord ! 🐱🔑`,
+  `Le poisson est enfermé, trouve la clé ${PLAYER_NAME} ! 🐟🔒`,
+  `Clé d'abord, poisson ensuite ${PLAYER_NAME} ! 🔑➡️🐟`,
 ];
 
 const TRANSITION_MESSAGES = [
@@ -201,7 +213,11 @@ function showFeedback(type, bonusCount = 0) {
       }
     };
   } else {
-    messageEl.textContent = type === 'fail' ? randomFrom(FAIL_MESSAGES) : randomFrom(INCOMPLETE_MESSAGES);
+    if (type === 'fail' && lastFailWasLocked) {
+      messageEl.textContent = randomFrom(LOCKED_MESSAGES);
+    } else {
+      messageEl.textContent = type === 'fail' ? randomFrom(FAIL_MESSAGES) : randomFrom(INCOMPLETE_MESSAGES);
+    }
     btnRetry.classList.remove('hidden');
     btnRetry.onclick = async () => {
       overlay.classList.add('hidden');
@@ -220,6 +236,7 @@ document.getElementById('btn-run').addEventListener('click', async () => {
   if (isRunning) return;
   isRunning = true;
   document.getElementById('btn-run').disabled = true;
+  lastFailWasLocked = false;
 
   const level = levels[currentLevelIndex];
   const program = getProgram();
@@ -248,6 +265,46 @@ document.getElementById('btn-run').addEventListener('click', async () => {
       playPop();
       const bonusEl = document.getElementById(`bonus-${x}-${y}`);
       if (bonusEl) bonusEl.classList.add('anim-bonus-collect');
+    },
+    onPickup: async (x, y) => {
+      playPop();
+      const pickupEl = document.getElementById(`pickup-${x}-${y}`);
+      if (pickupEl) {
+        pickupEl.classList.add('anim-key-collect');
+        await new Promise(r => setTimeout(r, 600));
+        pickupEl.remove();
+      }
+    },
+    onAllPickupsCollected: async () => {
+      const level = levels[currentLevelIndex];
+      const goalIcon = document.getElementById('goal-icon');
+      const goalCell = gridContainer.querySelector(`[data-x="${level.goal.x}"][data-y="${level.goal.y}"]`);
+      if (goalIcon) {
+        goalIcon.classList.add('anim-lock-break');
+        await new Promise(r => setTimeout(r, 400));
+        goalIcon.textContent = level.goal.type === 'fish' ? '🐟' : '🧶';
+        goalIcon.classList.remove('anim-lock-break');
+        goalIcon.classList.add('anim-goal-appear');
+      }
+      if (goalCell) {
+        goalCell.classList.remove('locked-goal');
+      }
+      await new Promise(r => setTimeout(r, 500));
+    },
+    onGoalLocked: async (x, y, direction) => {
+      lastFailWasLocked = true;
+      playBonk();
+      const goalIcon = document.getElementById('goal-icon');
+      if (goalIcon) {
+        goalIcon.classList.add('anim-lock-wiggle');
+        goalIcon.addEventListener('animationend', () => {
+          goalIcon.classList.remove('anim-lock-wiggle');
+        }, { once: true });
+      }
+      playBounceWall(direction);
+      playState('fail');
+      await new Promise(r => setTimeout(r, 600));
+      playMeowSad();
     },
     onWin: async (bonusCount) => {
       playMeowHappy();
