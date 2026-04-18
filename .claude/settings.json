@@ -1,0 +1,29 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(//Users/pierre.alexis/pixy/**)",
+      "Read(//Users/pierre.alexis/.claude/plugins/cache/claude-plugins-official/superpowers/5.0.5/skills/subagent-driven-development/**)",
+      "Bash(git init:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git checkout:*)",
+      "Bash(git -C /Users/pierre.alexis/pixy/louise branch --show-current)",
+      "Bash(npx serve:*)",
+      "Bash(ipconfig getifaddr:*)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" \"https://cdn.jsdelivr.net/npm/sortablejs@1.15.6/Sortable.min.js\")",
+      "Bash(curl -s -I http://localhost:8080/js/main.js)",
+      "Bash(curl -s http://localhost:8080/)",
+      "WebFetch(domain:lottiefiles.com)",
+      "Bash(curl -s \"https://lottiefiles.com/api/v2/featured-public-animations?page=1&per_page=20&query=cat\" -H \"Accept: application/json\")",
+      "Bash(curl -s -L \"https://lottie.host/embed/Bz64NakoZn/index.json\" -o /dev/null -w \"%{http_code}\\\\n%{url_effective}\")",
+      "Bash(curl -s -L \"https://assets2.lottiefiles.com/packages/lf20_Bz64NakoZn.json\" -o /dev/null -w \"%{http_code}\\\\n%{url_effective}\")",
+      "Bash(curl -s -L \"https://lottiefiles.com/api/v1/animations/Bz64NakoZn\" -H \"Accept: application/json\" -o /dev/null -w \"%{http_code}\")",
+      "Bash(curl -s -L \"https://lottie.host/Bz64NakoZn.json\" -o /dev/null -w \"%{http_code}\")",
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "WebFetch(domain:googlefonts.github.io)"
+    ]
+  },
+  "enabledPlugins": {
+    "claude-mem@thedotmack": true
+  }
+}
