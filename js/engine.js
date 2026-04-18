@@ -32,6 +32,27 @@ export async function executeProgram(program, level, callbacks) {
   const collectedPickups = [];
   const pickups = level.pickups || [];
   const totalPickups = pickups.length;
+  const teleporters = level.teleporters || [];
+  const boxes = (level.boxes || []).map(b => ({ x: b.x, y: b.y }));
+
+  function boxIndexAt(x, y) {
+    return boxes.findIndex(b => b.x === x && b.y === y);
+  }
+  function cellBlocked(x, y) {
+    if (x < 0 || y < 0 || x >= level.grid || y >= level.grid) return true;
+    if (level.walls.some(w => w.x === x && w.y === y)) return true;
+    if (boxes.some(b => b.x === x && b.y === y)) return true;
+    return false;
+  }
+
+  function findTeleporterAt(x, y) {
+    return teleporters.find(t =>
+      (t.a.x === x && t.a.y === y) || (t.b.x === x && t.b.y === y)
+    );
+  }
+  function teleporterDest(tele, fromX, fromY) {
+    return (tele.a.x === fromX && tele.a.y === fromY) ? tele.b : tele.a;
+  }
 
   for (const step of steps) {
     let nextX, nextY, moveDirection;
@@ -60,6 +81,12 @@ export async function executeProgram(program, level, callbacks) {
         await callbacks.onFail();
         return;
       }
+      // On saute par-dessus tout, mais on ne peut pas atterrir sur un bloc
+      if (boxIndexAt(nextX, nextY) !== -1) {
+        await callbacks.onWall(catX, catY, step.direction);
+        await callbacks.onFail();
+        return;
+      }
     } else {
       const dir = DIRECTIONS[step.type];
       if (!dir) continue;
@@ -77,6 +104,27 @@ export async function executeProgram(program, level, callbacks) {
         await callbacks.onFail();
         return;
       }
+
+      // Bloc à pousser ?
+      const boxIdx = boxIndexAt(nextX, nextY);
+      if (boxIdx !== -1) {
+        const boxDestX = nextX + dir.dx;
+        const boxDestY = nextY + dir.dy;
+        const boxBlocked =
+          cellBlocked(boxDestX, boxDestY) ||
+          (boxDestX === level.goal.x && boxDestY === level.goal.y) ||
+          findTeleporterAt(boxDestX, boxDestY) ||
+          pickups.some(p => p.x === boxDestX && p.y === boxDestY);
+        if (boxBlocked) {
+          await callbacks.onWall(catX, catY, step.type);
+          await callbacks.onFail();
+          return;
+        }
+        boxes[boxIdx] = { x: boxDestX, y: boxDestY };
+        if (callbacks.onBoxPush) {
+          await callbacks.onBoxPush(boxIdx, boxDestX, boxDestY, step.type);
+        }
+      }
     }
 
     // But verrouillé ? (pickups pas tous collectés)
@@ -93,6 +141,17 @@ export async function executeProgram(program, level, callbacks) {
     catX = nextX;
     catY = nextY;
     await callbacks.onStep(catX, catY, moveDirection);
+
+    // Téléporteur ? (on arrive sur une case de téléport → on est téléporté vers l'autre extrémité)
+    const tele = findTeleporterAt(catX, catY);
+    if (tele) {
+      const dest = teleporterDest(tele, catX, catY);
+      catX = dest.x;
+      catY = dest.y;
+      if (callbacks.onTeleport) {
+        await callbacks.onTeleport(catX, catY);
+      }
+    }
 
     // Pickup ?
     const pickupKey = `${catX}-${catY}`;
@@ -114,8 +173,9 @@ export async function executeProgram(program, level, callbacks) {
       await callbacks.onBonus(catX, catY);
     }
 
-    // Victoire ?
-    if (isGoal) {
+    // Victoire ? (vérifie contre la position finale après téléport éventuel)
+    const finalIsGoal = catX === level.goal.x && catY === level.goal.y;
+    if (finalIsGoal) {
       await callbacks.onWin(collectedBonuses.length);
       return;
     }

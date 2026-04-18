@@ -6,6 +6,8 @@ export function renderGrid(level, container) {
   gridSize = level.grid;
   const pickups = level.pickups || [];
   const hasPickups = pickups.length > 0;
+  const teleporters = level.teleporters || [];
+  const boxes = level.boxes || [];
 
   const grid = document.createElement('div');
   grid.className = 'grid';
@@ -47,6 +49,29 @@ export function renderGrid(level, container) {
         pickupEl.textContent = '🔑';
         cell.classList.add('has-pickup');
         cell.appendChild(pickupEl);
+      }
+
+      // Téléporteur (case a ou b d'une paire)
+      const teleporter = teleporters.find(t =>
+        (t.a.x === x && t.a.y === y) || (t.b.x === x && t.b.y === y)
+      );
+      if (teleporter) {
+        const teleEl = document.createElement('span');
+        teleEl.className = 'teleporter';
+        teleEl.textContent = '🌀';
+        cell.classList.add('has-teleporter');
+        cell.appendChild(teleEl);
+      }
+
+      // Bloc poussable
+      const boxIndex = boxes.findIndex(b => b.x === x && b.y === y);
+      if (boxIndex !== -1) {
+        const boxEl = document.createElement('span');
+        boxEl.className = 'box';
+        boxEl.id = `box-${boxIndex}`;
+        boxEl.textContent = '📦';
+        cell.classList.add('has-box');
+        cell.appendChild(boxEl);
       }
 
       // Bonus

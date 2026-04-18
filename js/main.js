@@ -2,7 +2,7 @@ import levels from './levels/index.js';
 import { renderGrid } from './grid.js';
 import { initCards, clearProgram, getProgram, countVisualCards } from './cards.js';
 import { executeProgram } from './engine.js';
-import { initCatAnimation, playState, positionCatOnCell, moveCatTo, playBounceWall, playCelebrate, fireConfetti } from './animations.js';
+import { initCatAnimation, playState, positionCatOnCell, moveCatTo, teleportCatTo, playBounceWall, playCelebrate, fireConfetti } from './animations.js';
 import { initAudio, playStep, playBonk, playMeowHappy, playMeowSad, playFanfare, playPop } from './audio.js';
 
 const PLAYER_NAME = 'Loulou';
@@ -260,6 +260,26 @@ document.getElementById('btn-run').addEventListener('click', async () => {
       playState('fail');
       await new Promise(r => setTimeout(r, 600));
       playMeowSad();
+    },
+    onBoxPush: async (i, x, y, _direction) => {
+      playPop();
+      const boxEl = document.getElementById(`box-${i}`);
+      if (!boxEl) return;
+      const oldCell = boxEl.parentElement;
+      const newCell = gridContainer.querySelector(`[data-x="${x}"][data-y="${y}"]`);
+      if (newCell && oldCell) {
+        oldCell.classList.remove('has-box');
+        newCell.classList.add('has-box');
+        newCell.appendChild(boxEl);
+        boxEl.classList.add('anim-box-slide');
+        await new Promise(r => setTimeout(r, 350));
+        boxEl.classList.remove('anim-box-slide');
+      }
+    },
+    onTeleport: async (x, y) => {
+      playPop();
+      await teleportCatTo(x, y, gridContainer.querySelector('.grid'));
+      catPosition = { x, y };
     },
     onBonus: async (x, y) => {
       playPop();

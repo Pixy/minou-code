@@ -11,7 +11,13 @@ import level10 from './level-10.js';
 import level11 from './level-11.js';
 import level12 from './level-12.js';
 import level13 from './level-13.js';
+import level14 from './level-14.js';
+import level15 from './level-15.js';
+import level16 from './level-16.js';
+import level17 from './level-17.js';
+import level18 from './level-18.js';
+import level19 from './level-19.js';
 
-const levels = [level01, level02, level03, level04, level05, level06, level07, level08, level09, level10, level11, level12, level13];
+const levels = [level01, level02, level03, level04, level05, level06, level07, level08, level09, level10, level11, level12, level13, level14, level15, level16, level17, level18, level19];
 
 export default levels;

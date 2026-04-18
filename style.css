@@ -453,6 +453,45 @@ html, body {
   background: rgba(255,215,0,0.12);
 }
 
+/* Box (poussable) */
+.cell.has-box {
+  background: rgba(168,124,89,0.18);
+}
+.cell .box {
+  font-size: 1.7rem;
+  filter: drop-shadow(0 2px 4px rgba(90,74,63,0.25));
+}
+@keyframes box-slide {
+  0%   { transform: scale(1);    }
+  50%  { transform: scale(1.15); }
+  100% { transform: scale(1);    }
+}
+.anim-box-slide {
+  animation: box-slide 0.35s ease-out;
+}
+
+/* Teleporter */
+.cell.has-teleporter {
+  background: radial-gradient(circle, rgba(196,144,228,0.35) 0%, rgba(196,144,228,0.15) 100%);
+}
+.cell .teleporter {
+  font-size: 1.6rem;
+  filter: drop-shadow(0 2px 4px rgba(138,79,191,0.35));
+  animation: teleporter-spin 3s linear infinite;
+}
+@keyframes teleporter-spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+@keyframes teleporter-flash {
+  0%   { transform: scale(1);   opacity: 1; }
+  50%  { transform: scale(1.6); opacity: 0.6; }
+  100% { transform: scale(1);   opacity: 1; }
+}
+.anim-teleport-flash {
+  animation: teleporter-flash 0.4s ease-out;
+}
+
 /* Locked goal */
 .cell.locked-goal {
   background: rgba(180,180,180,0.15);

@@ -93,6 +93,27 @@ export async function moveCatTo(x, y, direction, gridElement) {
   catContainer.classList.remove('anim-hop');
 }
 
+export async function teleportCatTo(x, y, gridElement) {
+  const cell = gridElement.querySelector(`[data-x="${x}"][data-y="${y}"]`);
+  if (!cell || !catContainer) return;
+
+  // Flash au départ
+  catContainer.classList.add('anim-teleport-flash');
+  await new Promise(r => setTimeout(r, 200));
+
+  // Téléport instantané (pas de transition)
+  const gridRect = gridElement.getBoundingClientRect();
+  const cellRect = cell.getBoundingClientRect();
+  const offsetX = cellRect.left - gridRect.left + cellRect.width * 0.1;
+  const offsetY = cellRect.top - gridRect.top + cellRect.height * 0.1;
+  catContainer.style.transition = 'none';
+  catContainer.style.left = `${offsetX}px`;
+  catContainer.style.top = `${offsetY}px`;
+
+  await new Promise(r => setTimeout(r, 200));
+  catContainer.classList.remove('anim-teleport-flash');
+}
+
 export function playBounceWall(direction) {
   if (!catContainer) return;
 
