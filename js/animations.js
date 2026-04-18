@@ -1,15 +1,10 @@
-/* animations.js — Lottie cat animations + canvas-confetti */
+/* animations.js — SVG cat animations + canvas-confetti */
+
+import { createSvgCat, setSvgCatState } from './svg-cat.js?v=20260418d';
 
 let catContainer = null;
-let lottiePlayer = null;
+let catEl = null;
 let currentState = null;
-
-const STATES = {
-  idle: { path: 'assets/lottie/cat-danse.json', loop: true },
-  walk: { path: 'assets/lottie/cat-walk.json', loop: true },
-  win:  { path: 'assets/lottie/cat-win.json', loop: false },
-  fail: { path: 'assets/lottie/cat-lost.json', loop: false },
-};
 
 export function initCatAnimation(gridContainerEl) {
   const old = gridContainerEl.querySelector('#cat-container');
@@ -19,37 +14,22 @@ export function initCatAnimation(gridContainerEl) {
   catContainer.id = 'cat-container';
   gridContainerEl.querySelector('.grid').appendChild(catContainer);
 
-  currentState = null;
-  playState('idle');
+  catEl = createSvgCat(catContainer, 'idle');
+  currentState = 'idle';
 
   return catContainer;
 }
 
 export function playState(state) {
-  if (!catContainer) return;
-  if (currentState === state && lottiePlayer) return;
+  if (!catEl) return;
+  if (currentState === state) return;
   currentState = state;
-
-  if (lottiePlayer) {
-    lottiePlayer.destroy();
-    lottiePlayer = null;
-  }
-
-  catContainer.innerHTML = '';
-
-  const config = STATES[state] ?? STATES.idle;
-  lottiePlayer = lottie.loadAnimation({
-    container: catContainer,
-    renderer: 'svg',
-    loop: config.loop,
-    autoplay: true,
-    path: config.path,
-  });
-
-  if (!config.loop) {
-    lottiePlayer.addEventListener('complete', () => {
-      playState('idle');
-    });
+  setSvgCatState(catEl, state);
+  // Auto-return to idle after a one-shot state
+  if (state === 'fail' || state === 'win') {
+    setTimeout(() => {
+      if (currentState === state) playState('idle');
+    }, state === 'win' ? 2200 : 1200);
   }
 }
 
@@ -97,11 +77,9 @@ export async function teleportCatTo(x, y, gridElement) {
   const cell = gridElement.querySelector(`[data-x="${x}"][data-y="${y}"]`);
   if (!cell || !catContainer) return;
 
-  // Flash au départ
   catContainer.classList.add('anim-teleport-flash');
   await new Promise(r => setTimeout(r, 200));
 
-  // Téléport instantané (pas de transition)
   const gridRect = gridElement.getBoundingClientRect();
   const cellRect = cell.getBoundingClientRect();
   const offsetX = cellRect.left - gridRect.left + cellRect.width * 0.1;

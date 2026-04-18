@@ -11,6 +11,7 @@ node -e "
 const http = require('http');
 const fs = require('fs');
 const path = require('path');
+const url = require('url');
 const os = require('os');
 
 const MIME = {
@@ -20,7 +21,8 @@ const MIME = {
 };
 
 const server = http.createServer((req, res) => {
-  let filePath = path.join(process.cwd(), req.url === '/' ? 'index.html' : req.url);
+  const pathname = url.parse(req.url).pathname;
+  let filePath = path.join(process.cwd(), pathname === '/' ? 'index.html' : pathname);
   const ext = path.extname(filePath);
   fs.readFile(filePath, (err, data) => {
     if (err) { res.writeHead(404); res.end('Not found'); return; }

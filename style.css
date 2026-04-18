@@ -1,5 +1,5 @@
 /* ==========================================
-   MINOU CODE — Storybook Kawaii Theme
+   MINOU CODE — Island theme + FX
    ========================================== */
 
 /* ---------- TOKENS ---------- */
@@ -23,8 +23,20 @@
   --c-text-light: #9B8A7E;
   --c-wall: #C9B69C;
   --c-wall-deep: #A89274;
-  --c-cell: #FFFCF5;
-  --c-grid-bg: #F0DFD0;
+
+  /* Island theme */
+  --c-grass-1: #9BDB7A;
+  --c-grass-2: #7BC25E;
+  --c-grass-dark: #4E9B3C;
+  --c-sand: #F5E4B7;
+  --c-sand-deep: #E8C98F;
+  --c-ocean-1: #5AB3D8;
+  --c-ocean-2: #4299C1;
+  --c-ocean-3: #2E7CA3;
+  --c-rock: #A89887;
+  --c-rock-deep: #7A6B5D;
+  --c-rock-moss: #8BB872;
+
   --r: 18px;
   --r-sm: 12px;
   --r-lg: 24px;
@@ -171,7 +183,7 @@ html, body {
 }
 #btn-back:active { transform: scale(0.9); }
 
-/* Game area: stacked layout (portrait-first) */
+/* Game area */
 #game-area {
   display: flex;
   flex-direction: column;
@@ -181,16 +193,15 @@ html, body {
   gap: 8px;
 }
 
-/* Grid container — takes max available space while staying square */
 #grid-container {
   flex: 1 1 0;
   min-height: 0;
   display: flex;
   align-items: center;
   justify-content: center;
+  position: relative;
 }
 
-/* Bottom panel: cards tray + programme side by side */
 #bottom-panel {
   flex: 0 0 auto;
   display: flex;
@@ -405,79 +416,273 @@ html, body {
 }
 
 /* ==========================================
-   GRID
+   GRID — Island on the ocean
    ========================================== */
 .grid {
   display: grid;
-  gap: 4px;
-  background: var(--c-grid-bg);
+  gap: 0;
+  padding: 10%;
   border-radius: var(--r-lg);
-  padding: 8px;
   position: relative;
-  box-shadow:
-    var(--shadow-lg),
-    inset 0 1px 3px rgba(255,255,255,0.4),
-    0 0 0 3px rgba(240,223,208,0.5);
-  /* Size: fill the container but stay square */
+  overflow: hidden;
   width: min(100%, calc(100vh - 320px));
   height: min(100%, calc(100vh - 320px));
   max-width: 500px;
   max-height: 500px;
   aspect-ratio: 1;
+
+  /* Ocean background with moving stripes */
+  background:
+    /* foam wavelets at the top */
+    radial-gradient(ellipse 30px 4px at 20% 6%, rgba(255,255,255,0.6) 0%, transparent 70%),
+    radial-gradient(ellipse 40px 4px at 65% 8%, rgba(255,255,255,0.5) 0%, transparent 70%),
+    radial-gradient(ellipse 25px 3px at 85% 5%, rgba(255,255,255,0.4) 0%, transparent 70%),
+    /* moving diagonal stripes = water current */
+    repeating-linear-gradient(
+      110deg,
+      transparent 0 18px,
+      rgba(255,255,255,0.08) 18px 22px,
+      transparent 22px 40px
+    ),
+    /* base ocean gradient */
+    linear-gradient(180deg, var(--c-ocean-1) 0%, var(--c-ocean-2) 55%, var(--c-ocean-3) 100%);
+  background-size: auto, auto, 100% 100%, 100% 100%, 100% 100%;
+  background-position: 0 0, 0 0, 0 0, 0 0, 0 0;
+  animation: ocean-move 12s linear infinite;
+
+  box-shadow:
+    var(--shadow-lg),
+    inset 0 6px 14px rgba(0,0,0,0.18),
+    0 0 0 3px rgba(46,124,163,0.4);
 }
+@keyframes ocean-move {
+  0%   { background-position: 0 0, 0 0, 0 0, 0 0, 0 0; }
+  100% { background-position: 0 0, 0 0, 0 0, -200px 0, 0 0; }
+}
+
+/* Sand ring around the island */
+.grid::before {
+  content: '';
+  position: absolute;
+  inset: 6%;
+  border-radius: 34%;
+  background:
+    radial-gradient(circle at 30% 40%, rgba(255,255,255,0.35) 0%, transparent 30%),
+    radial-gradient(circle at 70% 70%, rgba(0,0,0,0.08) 0%, transparent 40%),
+    linear-gradient(160deg, var(--c-sand) 0%, var(--c-sand-deep) 100%);
+  box-shadow:
+    0 6px 18px rgba(0,0,0,0.18),
+    inset 0 2px 3px rgba(255,255,255,0.4);
+  z-index: 0;
+}
+
+/* Subtle foam around the island */
+.grid::after {
+  content: '';
+  position: absolute;
+  inset: 4%;
+  border-radius: 36%;
+  border: 6px dotted rgba(255,255,255,0.55);
+  opacity: 0.55;
+  filter: blur(1px);
+  pointer-events: none;
+  z-index: 0;
+  animation: foam-pulse 4s ease-in-out infinite;
+}
+@keyframes foam-pulse {
+  0%, 100% { opacity: 0.35; transform: scale(1); }
+  50%      { opacity: 0.7;  transform: scale(1.015); }
+}
+
+/* ---------- CELLS = GRASS ---------- */
 .cell {
-  background: var(--c-cell);
-  border-radius: var(--r-sm);
   position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 1.8rem;
-  box-shadow: inset 0 1px 3px rgba(90,74,63,0.05);
-  transition: background 0.2s;
+  z-index: 1;
+  background:
+    /* short vertical fibers */
+    repeating-linear-gradient(
+      92deg,
+      transparent 0 2px,
+      rgba(78,155,60,0.22) 2px 3px,
+      transparent 3px 7px
+    ),
+    repeating-linear-gradient(
+      88deg,
+      transparent 0 3px,
+      rgba(78,155,60,0.14) 3px 4px,
+      transparent 4px 9px
+    ),
+    linear-gradient(160deg, var(--c-grass-1) 0%, var(--c-grass-2) 100%);
+  transition: transform 0.12s ease-out, filter 0.12s ease-out;
+}
+
+/* 2 grass tufts sticking out above the cell */
+.cell:not(.wall):not(.has-box):not(.has-teleporter)::before {
+  content: '';
+  position: absolute;
+  left: 22%;
+  top: 4%;
+  width: 4px; height: 9px;
+  background: var(--c-grass-dark);
+  border-radius: 2px 2px 0 0;
+  transform: rotate(-10deg);
+  transform-origin: bottom center;
+  opacity: 0.7;
+  transition: transform 0.2s ease-out;
+}
+.cell:not(.wall):not(.has-box):not(.has-teleporter)::after {
+  content: '';
+  position: absolute;
+  right: 26%;
+  top: 6%;
+  width: 3px; height: 7px;
+  background: var(--c-grass-dark);
+  border-radius: 2px 2px 0 0;
+  transform: rotate(12deg);
+  transform-origin: bottom center;
+  opacity: 0.6;
+  transition: transform 0.2s ease-out;
+}
+
+/* Tiny flower accent on a couple of cells for life */
+.cell:nth-child(7n+3):not(.wall):not(.locked-goal):not(.has-pickup):not(.has-box):not(.has-teleporter) {
+  background:
+    radial-gradient(circle 2.5px at 72% 70%, #FFD166 0%, #FFD166 60%, transparent 61%),
+    radial-gradient(circle 1.5px at 72% 70%, #FF7EB3 0%, #FF7EB3 60%, transparent 61%),
+    repeating-linear-gradient(92deg, transparent 0 2px, rgba(78,155,60,0.22) 2px 3px, transparent 3px 7px),
+    repeating-linear-gradient(88deg, transparent 0 3px, rgba(78,155,60,0.14) 3px 4px, transparent 4px 9px),
+    linear-gradient(160deg, var(--c-grass-1) 0%, var(--c-grass-2) 100%);
+}
+
+/* ---------- ROCKS ---------- */
+.cell.wall {
+  background: transparent;
+  z-index: 2;
+}
+.cell.wall::before, .cell.wall::after { display: none; }
+.cell.wall {
+  --rock-bg:
+    radial-gradient(ellipse at 40% 30%, rgba(255,255,255,0.35) 0%, transparent 35%),
+    radial-gradient(ellipse at 55% 55%, var(--c-rock) 0%, var(--c-rock-deep) 70%, #4A3D30 100%);
 }
 .cell.wall {
-  background: linear-gradient(145deg, var(--c-wall) 0%, var(--c-wall-deep) 100%);
-  box-shadow: inset 0 2px 5px rgba(0,0,0,0.15);
+  background: var(--rock-bg);
+  border-radius: 55% 45% 50% 50% / 55% 50% 50% 45%;
+  transform: scale(0.86);
+  box-shadow:
+    0 4px 10px rgba(0,0,0,0.35),
+    inset -4px -6px 10px rgba(0,0,0,0.25),
+    inset 3px 3px 6px rgba(255,255,255,0.25);
 }
-.cell .goal { font-size: 1.8rem; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.12)); }
-.cell .bonus { font-size: 1.4rem; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.12)); }
+/* Moss patch */
+.cell.wall {
+  position: relative;
+}
+.cell.wall > .moss-overlay,
+.cell.wall::marker { content: ''; }
 
-/* Pickup (key) */
+/* ---------- GOAL ---------- */
+.cell .goal {
+  font-size: 1.9rem;
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.18));
+  z-index: 2;
+  position: relative;
+}
+.cell .bonus {
+  font-size: 1.4rem;
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.18));
+  z-index: 2;
+  position: relative;
+}
+
+/* Gamelle plate underneath goal when reachable (fish bowl vibe) */
+.cell:has(.goal)::after,
+.cell:has(#goal-icon):not(.locked-goal)::after {
+  content: '';
+  position: absolute;
+  bottom: 14%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 58%;
+  height: 8px;
+  background: radial-gradient(ellipse, rgba(0,0,0,0.25) 0%, transparent 70%);
+  border-radius: 50%;
+  z-index: 1;
+  opacity: 1;
+}
+
+/* ---------- PICKUPS / LOCKED ---------- */
 .cell .pickup {
   font-size: 1.6rem;
-  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.12));
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.18)) drop-shadow(0 0 6px rgba(255,215,0,0.6));
   animation: key-glow 2s ease-in-out infinite;
+  z-index: 2;
+  position: relative;
 }
 .cell.has-pickup {
-  background: rgba(255,215,0,0.12);
+  background:
+    radial-gradient(circle at 50% 50%, rgba(255,215,0,0.18) 0%, transparent 60%),
+    repeating-linear-gradient(92deg, transparent 0 2px, rgba(78,155,60,0.22) 2px 3px, transparent 3px 7px),
+    repeating-linear-gradient(88deg, transparent 0 3px, rgba(78,155,60,0.14) 3px 4px, transparent 4px 9px),
+    linear-gradient(160deg, var(--c-grass-1) 0%, var(--c-grass-2) 100%);
 }
 
-/* Box (poussable) */
+.cell.locked-goal {
+  background:
+    radial-gradient(circle at 50% 50%, rgba(180,180,180,0.28) 0%, transparent 60%),
+    repeating-linear-gradient(92deg, transparent 0 2px, rgba(78,155,60,0.22) 2px 3px, transparent 3px 7px),
+    repeating-linear-gradient(88deg, transparent 0 3px, rgba(78,155,60,0.14) 3px 4px, transparent 4px 9px),
+    linear-gradient(160deg, var(--c-grass-1) 0%, var(--c-grass-2) 100%);
+}
+.cell.locked-goal .goal {
+  font-size: 1.6rem;
+}
+
+/* ---------- BOX (pushable crate on grass) ---------- */
 .cell.has-box {
-  background: rgba(168,124,89,0.18);
+  background:
+    radial-gradient(circle at 50% 50%, rgba(168,124,89,0.18) 0%, transparent 60%),
+    repeating-linear-gradient(92deg, transparent 0 2px, rgba(78,155,60,0.22) 2px 3px, transparent 3px 7px),
+    repeating-linear-gradient(88deg, transparent 0 3px, rgba(78,155,60,0.14) 3px 4px, transparent 4px 9px),
+    linear-gradient(160deg, var(--c-grass-1) 0%, var(--c-grass-2) 100%);
 }
 .cell .box {
-  font-size: 1.7rem;
-  filter: drop-shadow(0 2px 4px rgba(90,74,63,0.25));
+  font-size: 1.75rem;
+  filter: drop-shadow(0 3px 4px rgba(0,0,0,0.3));
+  z-index: 2;
+  position: relative;
 }
 @keyframes box-slide {
-  0%   { transform: scale(1);    }
-  50%  { transform: scale(1.15); }
-  100% { transform: scale(1);    }
+  0%   { transform: scale(1)    translateY(0); }
+  30%  { transform: scale(1.15) translateY(-4px) rotate(-5deg); }
+  60%  { transform: scale(1.08) translateY(0)   rotate(3deg); }
+  100% { transform: scale(1)    translateY(0)   rotate(0deg); }
 }
-.anim-box-slide {
-  animation: box-slide 0.35s ease-out;
-}
+.anim-box-slide { animation: box-slide 0.35s ease-out; }
 
-/* Teleporter */
+/* ---------- TELEPORTER — swirling portal ---------- */
 .cell.has-teleporter {
-  background: radial-gradient(circle, rgba(196,144,228,0.35) 0%, rgba(196,144,228,0.15) 100%);
+  background:
+    radial-gradient(circle at 50% 50%,
+      rgba(196,144,228,0.6) 0%,
+      rgba(196,144,228,0.25) 35%,
+      rgba(196,144,228,0.0) 60%,
+      transparent 100%),
+    repeating-linear-gradient(92deg, transparent 0 2px, rgba(78,155,60,0.22) 2px 3px, transparent 3px 7px),
+    repeating-linear-gradient(88deg, transparent 0 3px, rgba(78,155,60,0.14) 3px 4px, transparent 4px 9px),
+    linear-gradient(160deg, var(--c-grass-1) 0%, var(--c-grass-2) 100%);
+  box-shadow: inset 0 0 14px rgba(196,144,228,0.4);
 }
 .cell .teleporter {
-  font-size: 1.6rem;
-  filter: drop-shadow(0 2px 4px rgba(138,79,191,0.35));
+  font-size: 1.7rem;
+  filter: drop-shadow(0 2px 4px rgba(138,79,191,0.45)) drop-shadow(0 0 8px rgba(196,144,228,0.8));
   animation: teleporter-spin 3s linear infinite;
+  z-index: 2;
+  position: relative;
 }
 @keyframes teleporter-spin {
   from { transform: rotate(0deg); }
@@ -485,19 +690,11 @@ html, body {
 }
 @keyframes teleporter-flash {
   0%   { transform: scale(1);   opacity: 1; }
-  50%  { transform: scale(1.6); opacity: 0.6; }
+  50%  { transform: scale(1.8); opacity: 0.4; filter: drop-shadow(0 0 20px #C9A0DC); }
   100% { transform: scale(1);   opacity: 1; }
 }
 .anim-teleport-flash {
   animation: teleporter-flash 0.4s ease-out;
-}
-
-/* Locked goal */
-.cell.locked-goal {
-  background: rgba(180,180,180,0.15);
-}
-.cell.locked-goal .goal {
-  font-size: 1.6rem;
 }
 
 /* ==========================================
@@ -506,12 +703,191 @@ html, body {
 #cat-container {
   position: absolute;
   z-index: 10;
-  filter: drop-shadow(0 4px 8px rgba(90,74,63,0.25));
+  filter: drop-shadow(0 4px 8px rgba(90,74,63,0.35));
   pointer-events: none;
 }
 #cat-container svg {
   width: 100% !important;
   height: 100% !important;
+}
+
+/* ==========================================
+   FX — movement, collisions, victory
+   ========================================== */
+
+/* Grass squashed under paws */
+.cell.grass-squashed {
+  filter: brightness(0.88) saturate(1.15);
+}
+.cell.grass-squashed::before { transform: rotate(60deg) scaleY(0.5) !important; opacity: 0.4 !important; }
+.cell.grass-squashed::after  { transform: rotate(-65deg) scaleY(0.5) !important; opacity: 0.4 !important; }
+
+/* Water splash */
+.fx-ripple {
+  position: absolute;
+  width: 14px; height: 14px;
+  border: 4px solid rgba(255,255,255,0.95);
+  border-radius: 50%;
+  pointer-events: none;
+  transform: translate(-50%, -50%);
+  animation: fx-ripple-out 1.3s ease-out forwards;
+  z-index: 14;
+  box-shadow: 0 0 8px rgba(255,255,255,0.4);
+}
+@keyframes fx-ripple-out {
+  0%   { width: 12px; height: 12px; opacity: 1; border-width: 4px; }
+  100% { width: 140px; height: 140px; opacity: 0; border-width: 1.5px; }
+}
+.fx-droplet {
+  position: absolute;
+  font-size: 1.5rem;
+  pointer-events: none;
+  transform: translate(-50%, -50%);
+  animation: fx-droplet-fly 1s cubic-bezier(0.3,0.8,0.6,1) forwards;
+  filter: drop-shadow(0 2px 3px rgba(0,0,0,0.35));
+  z-index: 15;
+}
+@keyframes fx-droplet-fly {
+  0%   { transform: translate(-50%, -50%) scale(0.3); opacity: 1; }
+  20%  { transform: translate(calc(-50% + calc(var(--dx) * 0.3)), calc(-50% + calc(var(--dy) * 0.3 - 20px))) scale(1.2); opacity: 1; }
+  60%  { opacity: 1; }
+  100% { transform: translate(calc(-50% + var(--dx)), calc(-50% + var(--dy) + 45px)) scale(0.4); opacity: 0; }
+}
+
+/* Rock shake on hit */
+.fx-rock-shake {
+  animation: fx-rock-shake 0.5s ease-in-out;
+}
+@keyframes fx-rock-shake {
+  0%, 100% { transform: scale(0.86) translateX(0); }
+  20% { transform: scale(0.86) translateX(-5px) rotate(-3deg); }
+  40% { transform: scale(0.86) translateX(5px) rotate(3deg); }
+  60% { transform: scale(0.86) translateX(-4px) rotate(-2deg); }
+  80% { transform: scale(0.86) translateX(3px) rotate(2deg); }
+}
+
+/* Comic text (BONK, PLOUF, BOOM, POUSSE, etc.) */
+.fx-comic {
+  position: absolute;
+  font-weight: 900;
+  font-size: 2.4rem;
+  letter-spacing: 0.02em;
+  color: #FFED6B;
+  -webkit-text-stroke: 3px #5A4A3F;
+  text-stroke: 3px #5A4A3F;
+  text-shadow:
+    3px 3px 0 #5A4A3F,
+    -1px -1px 0 #5A4A3F,
+    1px -1px 0 #5A4A3F,
+    -1px 1px 0 #5A4A3F;
+  pointer-events: none;
+  transform: translate(-50%, -50%) rotate(var(--tilt, 0deg));
+  animation: fx-comic-pop 1.1s cubic-bezier(0.2,1.4,0.5,1) forwards;
+  z-index: 20;
+  white-space: nowrap;
+}
+@keyframes fx-comic-pop {
+  0%   { transform: translate(-50%, -50%) rotate(var(--tilt, 0deg)) scale(0.2); opacity: 0; }
+  20%  { transform: translate(-50%, -50%) rotate(var(--tilt, 0deg)) scale(1.3); opacity: 1; }
+  40%  { transform: translate(-50%, -50%) rotate(var(--tilt, 0deg)) scale(1); opacity: 1; }
+  85%  { transform: translate(-50%, calc(-50% - 20px)) rotate(var(--tilt, 0deg)) scale(1); opacity: 1; }
+  100% { transform: translate(-50%, calc(-50% - 40px)) rotate(var(--tilt, 0deg)) scale(0.9); opacity: 0; }
+}
+
+/* Laughing fish */
+.fx-fish {
+  position: absolute;
+  font-size: 1.6rem;
+  pointer-events: none;
+  transform: translate(-50%, -50%);
+  animation: fx-fish-jump 1.5s ease-in-out forwards;
+  z-index: 13;
+  filter: drop-shadow(0 2px 3px rgba(0,0,0,0.3));
+}
+@keyframes fx-fish-jump {
+  0%   { transform: translate(-50%, 0) rotate(-10deg) scale(0.5); opacity: 0; }
+  25%  { transform: translate(-50%, -30px) rotate(10deg) scale(1); opacity: 1; }
+  50%  { transform: translate(-50%, -38px) rotate(-10deg) scale(1); opacity: 1; }
+  75%  { transform: translate(-50%, -20px) rotate(10deg) scale(1); opacity: 1; }
+  100% { transform: translate(-50%, 10px) rotate(0deg) scale(0.6); opacity: 0; }
+}
+.fx-fish-laugh {
+  position: absolute;
+  font-size: 1.1rem;
+  pointer-events: none;
+  transform: translate(-50%, -50%);
+  animation: fx-fish-laugh 1.5s ease-out forwards;
+  z-index: 14;
+}
+@keyframes fx-fish-laugh {
+  0%   { transform: translate(-50%, 0) scale(0); opacity: 0; }
+  30%  { transform: translate(-50%, -20px) scale(1.2); opacity: 1; }
+  70%  { transform: translate(-50%, -35px) scale(1); opacity: 1; }
+  100% { transform: translate(-50%, -50px) scale(0.8); opacity: 0; }
+}
+
+/* Firework burst — victory */
+.fx-firework {
+  position: absolute;
+  font-size: 1.3rem;
+  pointer-events: none;
+  transform: translate(-50%, -50%);
+  animation: fx-firework 0.9s ease-out forwards;
+  z-index: 15;
+  filter: drop-shadow(0 0 6px currentColor);
+}
+@keyframes fx-firework {
+  0%   { transform: translate(-50%, -50%) scale(0.2); opacity: 0; }
+  15%  { transform: translate(-50%, -50%) scale(1.2); opacity: 1; }
+  100% {
+    transform: translate(calc(-50% + var(--dx)), calc(-50% + var(--dy))) scale(0.3) rotate(360deg);
+    opacity: 0;
+  }
+}
+
+/* Sun rise — golden sweep */
+.fx-sunrise {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse at 50% 120%, rgba(255,220,120,0.9) 0%, rgba(255,200,80,0.4) 30%, transparent 60%);
+  animation: fx-sunrise 1.6s ease-out forwards;
+  z-index: 2;
+  mix-blend-mode: screen;
+}
+@keyframes fx-sunrise {
+  0%   { transform: translateY(100%); opacity: 0; }
+  40%  { transform: translateY(20%); opacity: 1; }
+  100% { transform: translateY(-10%); opacity: 0; }
+}
+
+/* Rocks hop of joy */
+.fx-rock-hop {
+  animation: fx-rock-hop 0.5s cubic-bezier(0.34,1.56,0.64,1);
+}
+@keyframes fx-rock-hop {
+  0%, 100% { transform: scale(0.86) translateY(0); }
+  40% { transform: scale(0.9) translateY(-14px) rotate(-6deg); }
+  60% { transform: scale(0.9) translateY(-14px) rotate(6deg); }
+}
+
+/* Teleport glow on arrival */
+.fx-teleport-glow {
+  position: absolute;
+  width: 80px; height: 80px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(196,144,228,0.9) 0%, rgba(196,144,228,0.4) 40%, transparent 70%);
+  pointer-events: none;
+  transform: translate(-50%, -50%) scale(0);
+  animation: fx-teleport-glow 0.7s ease-out forwards;
+  z-index: 11;
+  filter: blur(4px);
+}
+@keyframes fx-teleport-glow {
+  0%   { transform: translate(-50%, -50%) scale(0);    opacity: 1; }
+  50%  { transform: translate(-50%, -50%) scale(1.5); opacity: 0.9; }
+  100% { transform: translate(-50%, -50%) scale(2.5); opacity: 0; }
 }
 
 /* ==========================================
@@ -590,7 +966,7 @@ html, body {
 }
 
 /* ==========================================
-   ANIMATIONS
+   ANIMATIONS shared
    ========================================== */
 @keyframes wiggle {
   0%, 100% { transform: rotate(0deg); }
@@ -641,8 +1017,8 @@ html, body {
   100% { transform: scale(0); opacity: 0; }
 }
 @keyframes key-glow {
-  0%, 100% { filter: drop-shadow(0 2px 4px rgba(0,0,0,0.12)) drop-shadow(0 0 6px rgba(255,215,0,0.0)); transform: scale(1); }
-  50% { filter: drop-shadow(0 2px 4px rgba(0,0,0,0.12)) drop-shadow(0 0 14px rgba(255,215,0,0.6)); transform: scale(1.1); }
+  0%, 100% { filter: drop-shadow(0 2px 4px rgba(0,0,0,0.18)) drop-shadow(0 0 6px rgba(255,215,0,0.2)); transform: scale(1); }
+  50%      { filter: drop-shadow(0 2px 4px rgba(0,0,0,0.18)) drop-shadow(0 0 16px rgba(255,215,0,0.8)); transform: scale(1.1); }
 }
 @keyframes key-collect {
   0% { transform: scale(1) rotate(0deg); opacity: 1; }
@@ -693,7 +1069,7 @@ html, body {
 .anim-goal-appear { animation: goal-appear 0.5s cubic-bezier(0.34,1.56,0.64,1) forwards; }
 
 /* ==========================================
-   LANDSCAPE — side-by-side layout
+   LANDSCAPE
    ========================================== */
 @media (orientation: landscape) and (min-width: 640px) {
   #game-area {
@@ -727,7 +1103,7 @@ html, body {
 }
 
 /* ==========================================
-   SMALL SCREENS (compact)
+   COMPACT
    ========================================== */
 @media (max-height: 600px) {
   #game-header { padding: 4px 10px; }
@@ -736,4 +1112,167 @@ html, body {
   #btn-run { min-height: 44px; font-size: 1rem; }
   #btn-reset, #btn-clear { width: 44px; height: 44px; font-size: 1.1rem; }
   .card { min-height: 40px; padding: 6px 10px; font-size: 0.85rem; }
+}
+
+
+/* ==========================================
+   SVG CAT — replaces Lottie
+   ========================================== */
+.svg-cat {
+  width: 100%;
+  height: 100%;
+  position: relative;
+}
+.svg-cat svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+  overflow: visible;
+}
+
+/* Default: hide alt expressions and overlays */
+.svg-cat .eye-x,
+.svg-cat .mouth-happy { opacity: 0; }
+.svg-cat .eye-lid { transform: scaleY(0); transform-origin: center; }
+.svg-cat-stars,
+.svg-cat-sparkles,
+.svg-cat-fish { display: none; }
+
+/* ----- IDLE ----- */
+.svg-cat[data-state="idle"] .cat-body {
+  animation: cat-breathe 2.5s ease-in-out infinite;
+  transform-origin: center bottom;
+}
+.svg-cat[data-state="idle"] .cat-tail {
+  animation: cat-tail-wag 2s ease-in-out infinite;
+  transform-origin: 76px 72px;
+}
+.svg-cat[data-state="idle"] .eye-lid {
+  animation: cat-blink 3.5s ease-in-out infinite;
+}
+
+/* ----- WALK ----- */
+.svg-cat[data-state="walk"] {
+  animation: cat-hop 0.5s ease-in-out infinite;
+}
+.svg-cat[data-state="walk"] .ear-left,
+.svg-cat[data-state="walk"] .ear-right {
+  animation: cat-ear-bounce 0.5s ease-in-out infinite;
+  transform-origin: center bottom;
+}
+.svg-cat[data-state="walk"] .cat-tail {
+  animation: cat-tail-wag-fast 0.5s ease-in-out infinite;
+  transform-origin: 76px 72px;
+}
+
+/* ----- FAIL ----- */
+.svg-cat[data-state="fail"] {
+  animation: cat-shake 0.4s ease-in-out 3;
+}
+.svg-cat[data-state="fail"] .eye-x { opacity: 1; }
+.svg-cat[data-state="fail"] .eye-normal { opacity: 0; }
+.svg-cat[data-state="fail"] .svg-cat-stars {
+  display: block;
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+.svg-cat[data-state="fail"] .svg-cat-stars span {
+  position: absolute;
+  font-size: 1.4rem;
+  top: 10%;
+  left: 50%;
+  animation: cat-star-spin 1.2s ease-in-out infinite;
+  transform-origin: 0 30px;
+}
+.svg-cat[data-state="fail"] .svg-cat-stars span:nth-child(2) { animation-delay: -0.4s; }
+.svg-cat[data-state="fail"] .svg-cat-stars span:nth-child(3) { animation-delay: -0.8s; }
+
+/* ----- WIN ----- */
+.svg-cat[data-state="win"] .cat-body {
+  animation: cat-celebrate 1s ease-in-out infinite;
+  transform-origin: center bottom;
+}
+.svg-cat[data-state="win"] .mouth-happy { opacity: 1; }
+.svg-cat[data-state="win"] .mouth-normal { opacity: 0; }
+.svg-cat[data-state="win"] .cat-tail {
+  animation: cat-tail-wag-happy 0.6s ease-in-out infinite;
+  transform-origin: 76px 72px;
+}
+.svg-cat[data-state="win"] .svg-cat-fish {
+  display: block;
+  position: absolute;
+  top: 18%;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 1.6rem;
+  animation: cat-eat-fish 1.5s ease-in-out infinite;
+}
+.svg-cat[data-state="win"] .svg-cat-sparkles {
+  display: block;
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+.svg-cat[data-state="win"] .svg-cat-sparkles span {
+  position: absolute;
+  font-size: 1rem;
+  animation: cat-sparkle 1.4s ease-in-out infinite;
+}
+.svg-cat[data-state="win"] .svg-cat-sparkles span:nth-child(1) { top: 15%; left: 10%; animation-delay: 0s; }
+.svg-cat[data-state="win"] .svg-cat-sparkles span:nth-child(2) { top: 30%; right: 12%; animation-delay: 0.3s; }
+.svg-cat[data-state="win"] .svg-cat-sparkles span:nth-child(3) { bottom: 35%; left: 15%; animation-delay: 0.6s; }
+.svg-cat[data-state="win"] .svg-cat-sparkles span:nth-child(4) { bottom: 20%; right: 18%; animation-delay: 0.9s; }
+
+/* ----- keyframes ----- */
+@keyframes cat-breathe {
+  0%, 100% { transform: scaleY(1); }
+  50%      { transform: scaleY(1.03); }
+}
+@keyframes cat-tail-wag {
+  0%, 100% { transform: rotate(0deg); }
+  50%      { transform: rotate(-12deg); }
+}
+@keyframes cat-tail-wag-fast {
+  0%, 100% { transform: rotate(-8deg); }
+  50%      { transform: rotate(12deg); }
+}
+@keyframes cat-tail-wag-happy {
+  0%, 100% { transform: rotate(-15deg); }
+  50%      { transform: rotate(20deg); }
+}
+@keyframes cat-blink {
+  0%, 92%, 100% { transform: scaleY(0); }
+  94%, 98%      { transform: scaleY(1); }
+}
+@keyframes cat-hop {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-6px); }
+}
+@keyframes cat-ear-bounce {
+  0%, 100% { transform: scaleY(1) translateY(0); }
+  50%      { transform: scaleY(0.9) translateY(2px); }
+}
+@keyframes cat-shake {
+  0%, 100% { transform: translateX(0); }
+  25%      { transform: translateX(-4px) rotate(-2deg); }
+  75%      { transform: translateX(4px) rotate(2deg); }
+}
+@keyframes cat-celebrate {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  25%      { transform: translateY(-8px) rotate(-5deg); }
+  75%      { transform: translateY(-8px) rotate(5deg); }
+}
+@keyframes cat-star-spin {
+  0%   { transform: rotate(0deg) translateY(0); opacity: 0.9; }
+  50%  { transform: rotate(180deg) translateY(-4px); opacity: 0.5; }
+  100% { transform: rotate(360deg) translateY(0); opacity: 0.9; }
+}
+@keyframes cat-sparkle {
+  0%, 100% { transform: scale(0.6); opacity: 0.3; }
+  50%      { transform: scale(1.2); opacity: 1; }
+}
+@keyframes cat-eat-fish {
+  0%, 100% { transform: translateX(-50%) translateY(0) rotate(-10deg); }
+  50%      { transform: translateX(-50%) translateY(-8px) rotate(10deg); }
 }

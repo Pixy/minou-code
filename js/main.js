@@ -1,9 +1,20 @@
-import levels from './levels/index.js';
-import { renderGrid } from './grid.js';
-import { initCards, clearProgram, getProgram, countVisualCards } from './cards.js';
-import { executeProgram } from './engine.js';
-import { initCatAnimation, playState, positionCatOnCell, moveCatTo, teleportCatTo, playBounceWall, playCelebrate, fireConfetti } from './animations.js';
-import { initAudio, playStep, playBonk, playMeowHappy, playMeowSad, playFanfare, playPop } from './audio.js';
+import levels from './levels/index.js?v=20260418d';
+import { renderGrid } from './grid.js?v=20260418d';
+import { initCards, clearProgram, getProgram, countVisualCards } from './cards.js?v=20260418d';
+import { executeProgram } from './engine.js?v=20260418d';
+import { initCatAnimation, playState, positionCatOnCell, moveCatTo, teleportCatTo, playBounceWall, playCelebrate, fireConfetti } from './animations.js?v=20260418d';
+import { createSvgCat, setSvgCatState } from './svg-cat.js?v=20260418d';
+import { initAudio, playStep, playBonk, playMeowHappy, playMeowSad, playFanfare, playPop } from './audio.js?v=20260418d';
+import {
+  squashGrass,
+  waterSplash,
+  shakeRock,
+  comicText,
+  laughingFish,
+  fireworkOnGoal,
+  sunRise,
+  rocksCelebrate,
+} from './effects.js?v=20260418d';
 
 const PLAYER_NAME = 'Loulou';
 
@@ -143,7 +154,7 @@ function calculateStarCount(bonusCount) {
   return starCount;
 }
 
-let feedbackLottie = null;
+let feedbackCatEl = null;
 
 function showFeedback(type, bonusCount = 0) {
   const overlay = document.getElementById('feedback-overlay');
@@ -158,18 +169,12 @@ function showFeedback(type, bonusCount = 0) {
   btnNext.classList.add('hidden');
   btnRetry.classList.add('hidden');
 
-  // Cleanup previous lottie
-  if (feedbackLottie) { feedbackLottie.destroy(); feedbackLottie = null; }
+  // Cleanup previous cat
   catEl.innerHTML = '';
+  feedbackCatEl = null;
 
   if (type === 'win') {
-    feedbackLottie = lottie.loadAnimation({
-      container: catEl,
-      renderer: 'svg',
-      loop: true,
-      autoplay: true,
-      path: 'assets/lottie/cat-win.json',
-    });
+    feedbackCatEl = createSvgCat(catEl, 'win');
 
     messageEl.textContent = randomFrom(WIN_MESSAGES);
 
@@ -218,6 +223,7 @@ function showFeedback(type, bonusCount = 0) {
     } else {
       messageEl.textContent = type === 'fail' ? randomFrom(FAIL_MESSAGES) : randomFrom(INCOMPLETE_MESSAGES);
     }
+    feedbackCatEl = createSvgCat(catEl, 'fail');
     btnRetry.classList.remove('hidden');
     btnRetry.onclick = async () => {
       overlay.classList.add('hidden');
@@ -252,13 +258,34 @@ document.getElementById('btn-run').addEventListener('click', async () => {
       playStep();
       playState('walk');
       await moveCatTo(x, y, direction, gridContainer.querySelector('.grid'));
+      squashGrass(gridContainer.querySelector('.grid'), x, y);
       catPosition = { x, y };
     },
-    onWall: async (_x, _y, direction) => {
+    onWall: async (x, y, direction) => {
       playBonk();
       playBounceWall(direction);
       playState('fail');
-      await new Promise(r => setTimeout(r, 600));
+      const gridEl = gridContainer.querySelector('.grid');
+      // Is the obstacle a rock (wall) or the edge of the island (ocean) ?
+      const dirs = { up: [0,-1], down: [0,1], left: [-1,0], right: [1,0] };
+      const d = dirs[direction] || [0,-1];
+      const nx = x + d[0], ny = y + d[1];
+      const level = levels[currentLevelIndex];
+      const isRock = level.walls.some(w => w.x === nx && w.y === ny);
+      const isOutOfBounds = nx < 0 || ny < 0 || nx >= level.grid || ny >= level.grid;
+
+      if (isRock) {
+        shakeRock(gridEl, x, y, direction);
+        comicText(gridEl, x, y, direction, 'BONK !');
+      } else if (isOutOfBounds) {
+        waterSplash(gridEl, x, y, direction);
+        comicText(gridEl, x, y, direction, 'PLOUF !');
+        laughingFish(gridEl, x, y, direction);
+      } else {
+        // Box blocked or similar
+        comicText(gridEl, x, y, direction, 'OUPS !');
+      }
+      await new Promise(r => setTimeout(r, 700));
       playMeowSad();
     },
     onBoxPush: async (i, x, y, _direction) => {
@@ -331,6 +358,11 @@ document.getElementById('btn-run').addEventListener('click', async () => {
       playState('win');
       playCelebrate();
       const starCount = calculateStarCount(bonusCount);
+      const gridEl = gridContainer.querySelector('.grid');
+      const level = levels[currentLevelIndex];
+      sunRise(gridEl);
+      fireworkOnGoal(gridEl, level.goal.x, level.goal.y);
+      rocksCelebrate(gridEl);
       fireConfetti(starCount === 3);
       await new Promise(r => setTimeout(r, 2000));
       showFeedback('win', bonusCount);
