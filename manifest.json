@@ -1,0 +1,20 @@
+{
+  "name": "Minou Code",
+  "short_name": "Minou Code",
+  "description": "Jeu éducatif de programmation visuelle pour enfants",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "landscape",
+  "background_color": "#ffc857",
+  "theme_color": "#ffc857",
+  "lang": "fr",
+  "icons": [
+    {
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
